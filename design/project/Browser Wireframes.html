@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Orion Browser — Wireframes</title>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=Caveat+Brush&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script type="text/babel" src="design-canvas.jsx"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #f5f0eb; font-family: 'Caveat', cursive; }
+  .sketch-label { font-family: 'Caveat', cursive; font-size: 13px; color: #555; }
+</style>
+</head>
+<body>
+<script type="text/babel">
+
+/* ── Orion icon ── */
+const OrionIcon = ({ size = 28 }) => (
+  <svg width={size} height={size} viewBox="0 0 40 40" fill="none">
+    <circle cx="20" cy="20" r="18" stroke="#2a2a2a" strokeWidth="2" fill="none"/>
+    <ellipse cx="20" cy="20" rx="18" ry="7" stroke="#2a2a2a" strokeWidth="2" fill="none" transform="rotate(-30 20 20)"/>
+    <circle cx="20" cy="20" r="4" fill="#2a2a2a"/>
+  </svg>
+);
+
+/* ── Sketch primitives ── */
+const Box = ({ w, h, r=4, bg="#e8e3dc", border="#2a2a2a", bw=1.5, style={}, children }) => (
+  <div style={{
+    width: w, height: h, borderRadius: r,
+    background: bg, border: `${bw}px solid ${border}`,
+    position: 'relative', overflow: 'hidden',
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    flexShrink: 0,
+    ...style
+  }}>{children}</div>
+);
+
+const Label = ({ children, size=13, color="#444", bold=false, center=false, style={} }) => (
+  <span style={{
+    fontFamily: "'Caveat', cursive",
+    fontSize: size, color, fontWeight: bold ? 700 : 400,
+    textAlign: center ? 'center' : 'left',
+    lineHeight: 1.3,
+    ...style
+  }}>{children}</span>
+);
+
+const Pill = ({ children, bg="#2a2a2a", color="#fff", w, style={} }) => (
+  <div style={{
+    background: bg, color, borderRadius: 100,
+    padding: '4px 12px', fontFamily: "'Caveat', cursive",
+    fontSize: 12, width: w, textAlign: 'center',
+    border: '1.5px solid #2a2a2a',
+    ...style
+  }}>{children}</div>
+);
+
+const Divider = () => <div style={{ width: '100%', height: 1, background: '#2a2a2a', opacity: 0.2, margin: '4px 0' }} />;
+
+const SketchLine = ({ w='100%', h=10, style={} }) => (
+  <div style={{ width: w, height: h, borderRadius: 3, background: '#ccc', ...style }} />
+);
+
+/* ── Annotation arrow ── */
+const Note = ({ text, top, left, right, bottom, arrowDir='left' }) => (
+  <div style={{
+    position: 'absolute', top, left, right, bottom,
+    display: 'flex', alignItems: 'center', gap: 4,
+    pointerEvents: 'none', zIndex: 10
+  }}>
+    <Label size={11} color="#888">{text}</Label>
+  </div>
+);
+
+/* ═══════════════════════════════════
+   VARIATION A — CLASSIC (Bottom bar)
+═══════════════════════════════════ */
+
+/* A1: Home / New Tab */
+const A_HomeScreen = () => (
+  <div style={{ width: 390, background: '#faf8f5', display: 'flex', flexDirection: 'column', height: '100%' }}>
+    {/* Status bar */}
+    <div style={{ height: 44, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 20px', borderBottom: '1.5px solid #ddd' }}>
+      <Label size={12} bold>9:41</Label>
+      <Label size={11} color="#888">●●● ▲ ■■■■</Label>
+    </div>
+
+    {/* Search bar */}
+    <div style={{ padding: '14px 16px 10px' }}>
+      <Box w="100%" h={44} r={22} bg="#eee" style={{ justifyContent: 'flex-start', padding: '0 14px', gap: 10 }}>
+        <OrionIcon size={20} />
+        <Label size={14} color="#888">Search or enter address…</Label>
+      </Box>
+    </div>
+
+    {/* Quick Access */}
+    <div style={{ padding: '10px 16px 6px' }}>
+      <Label size={12} color="#999" bold>QUICK ACCESS</Label>
+    </div>
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 12, padding: '4px 16px 16px' }}>
+      {['YT','Gmaps','News','Reddit'].map(s => (
+        <div key={s} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
+          <Box w={52} h={52} r={14} bg="#e5e0d8" />
+          <Label size={11} center>{s}</Label>
+        </div>
+      ))}
+    </div>
+
+    {/* Recent */}
+    <div style={{ padding: '0 16px 6px' }}>
+      <Label size={12} color="#999" bold>RECENT</Label>
+    </div>
+    <div style={{ padding: '0 16px', display: 'flex', flexDirection: 'column', gap: 10, flex: 1 }}>
+      {['apurba.tech / home', 'github.com / explore', 'figma.com'].map(u => (
+        <div key={u} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <Box w={32} h={32} r={8} bg="#e5e0d8" />
+          <Label size={13} color="#555">{u}</Label>
+        </div>
+      ))}
+    </div>
+
+    {/* Bottom toolbar */}
+    <div style={{ height: 58, borderTop: '2px solid #2a2a2a', display: 'flex', alignItems: 'center', justifyContent: 'space-around', background: '#faf8f5', padding: '0 8px' }}>
+      {['←','→','□','⋯','⊞'].map((ic,i) => (
+        <div key={i} style={{ width: 44, height: 44, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <Label size={20} bold>{ic}</Label>
+        </div>
+      ))}
+    </div>
+    <div style={{ height: 24, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div style={{ width: 120, height: 4, borderRadius: 2, background: '#2a2a2a', opacity: 0.4 }} />
+    </div>
+  </div>
+);
+
+/* A2: Address Bar focused */
+const A_AddressBar = () => (
+  <div style={{ width: 390, background: '#faf8f5', display: 'flex', flexDirection: 'column', height: '100%' }}>
+    <div style={{ height: 44, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 20px', borderBottom: '1.5px solid #ddd' }}>
+      <Label size={12} bold>9:41</Label>
+      <Label size={11} color="#888">●●● ▲ ■■■■</Label>
+    </div>
+
+    {/* Active search bar */}
+    <div style={{ padding: '14px 16px', display: 'flex', gap: 8, alignItems: 'center' }}>
+      <Box w="1fr" h={44} r={22} bg="#fff" border="#2a2a2a" bw={2} style={{ flex: 1, justifyContent: 'flex-start', padding: '0 14px', gap: 8 }}>
+        <Label size={14} color="#888">figma.com/</Label>
+        <div style={{ width: 2, height: 18, background: '#2a2a2a', animation: 'blink 1s infinite' }} />
+      </Box>
+      <Label size={14} color="#555" bold>Cancel</Label>
+    </div>
+
+    {/* Suggestions */}
+    <div style={{ flex: 1, padding: '0 16px', display: 'flex', flexDirection: 'column', gap: 2 }}>
+      {[
+        { icon: '🔍', text: 'figma.com/files', sub: 'Search' },
+        { icon: '🌐', text: 'figma.com', sub: 'Bookmark' },
+        { icon: '🕐', text: 'figma.com/design/abc123', sub: 'Recent' },
+        { icon: '🕐', text: 'figma.com/community', sub: 'Recent' },
+        { icon: '🔍', text: 'figma tutorial', sub: 'Search' },
+      ].map((s,i) => (
+        <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 4px', borderBottom: '1px solid #e8e4df' }}>
+          <Label size={16}>{s.icon}</Label>
+          <div style={{ flex: 1 }}>
+            <Label size={13}>{s.text}</Label>
+          </div>
+          <Label size={11} color="#aaa">{s.sub}</Label>
+        </div>
+      ))}
+    </div>
+
+    {/* Keyboard sketch */}
+    <div style={{ background: '#ddd', height: 260, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', borderTop: '1.5px solid #bbb' }}>
+      {[
+        ['Q','W','E','R','T','Y','U','I','O','P'],
+        ['A','S','D','F','G','H','J','K','L'],
+        ['⇧','Z','X','C','V','B','N','M','⌫'],
+      ].map((row, ri) => (
+        <div key={ri} style={{ display: 'flex', gap: 5, marginBottom: 6 }}>
+          {row.map(k => (
+            <Box key={k} w={k.length>1?44:32} h={40} r={6} bg="#f5f0eb" bw={1} style={{}}>
+              <Label size={14} bold={false}>{k}</Label>
+            </Box>
+          ))}
+        </div>
+      ))}
+      <div style={{ display: 'flex', gap: 5, marginTop: 2 }}>
+        <Box w={80} h={40} r={6} bg="#f5f0eb" bw={1}><Label size={12}>123</Label></Box>
+        <Box w={190} h={40} r={6} bg="#fff" bw={1}><Label size={12} color="#aaa">space</Label></Box>
+        <Box w={80} h={40} r={6} bg="#2a2a2a" bw={1}><Label size={12} color="#fff">Go</Label></Box>
+      </div>
+    </div>
+    <div style={{ height: 24, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#ddd' }}>
+      <div style={{ width: 120, height: 4, borderRadius: 2, background: '#2a2a2a', opacity: 0.4 }} />
+    </div>
+  </div>
+);
+
+/* A3: Browsing a webpage */
+const A_Browsing = () => (
+  <div style={{ width: 390, background: '#faf8f5', display: 'flex', flexDirection: 'column', height: '100%' }}>
+    <div style={{ height: 44, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 20px', borderBottom: '1.5px solid #ddd' }}>
+      <Label size={12} bold>9:41</Label>
+      <Label size={11} color="#888">●●● ▲ ■■■■</Label>
+    </div>
+
+    {/* URL bar compact */}
+    <div style={{ padding: '8px 16px', display: 'flex', gap: 10, alignItems: 'center', borderBottom: '1px solid #e0dbd4' }}>
+      <Box w="1fr" h={36} r={18} bg="#eee" bw={1} style={{ flex: 1, justifyContent: 'center', gap: 6 }}>
+        <Label size={11} color="#888">🔒</Label>
+        <Label size={13} color="#555">figma.com</Label>
+      </Box>
+    </div>
+
+    {/* Page content sketch */}
+    <div style={{ flex: 1, padding: 16, overflow: 'hidden', display: 'flex', flexDirection: 'column', gap: 12 }}>
+      {/* Hero block */}
+      <Box w="100%" h={160} r={10} bg="#e5e0d8" bw={1.5} style={{ flexShrink: 0 }}>
+        <Label size={12} color="#aaa" center style={{ padding: '0 20px' }}>[ hero image ]</Label>
+      </Box>
+      <SketchLine w="70%" h={14} style={{ background: '#2a2a2a', opacity: 0.6 }} />
+      <SketchLine w="90%" h={10} />
+      <SketchLine w="85%" h={10} />
+      <SketchLine w="60%" h={10} />
+      <div style={{ height: 12 }} />
+      <SketchLine w="95%" h={10} />
+      <SketchLine w="80%" h={10} />
+      <SketchLine w="75%" h={10} />
+    </div>
+
+    {/* Bottom toolbar */}
+    <div style={{ height: 58, borderTop: '2px solid #2a2a2a', display: 'flex', alignItems: 'center', justifyContent: 'space-around', background: '#faf8f5', padding: '0 8px' }}>
+      {['←','→','□','⋯','⊞'].map((ic,i) => (
+        <div key={i} style={{ width: 44, height: 44, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <Label size={20} bold={i===4}>{ic}</Label>
+        </div>
+      ))}
+    </div>
+    <div style={{ height: 24, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div style={{ width: 120, height: 4, borderRadius: 2, background: '#2a2a2a', opacity: 0.4 }} />
+    </div>
+  </div>
+);
+
+/* A4: Tab Switcher */
+const A_Tabs = () => (
+  <div style={{ width: 390, background: '#1a1a1a', display: 'flex', flexDirection: 'column', height: '100%' }}>
+    <div style={{ height: 44, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 20px' }}>
+      <Label size={12} bold color="#fff">9:41</Label>
+      <Label size={11} color="#888">●●● ▲ ■■■■</Label>
+    </div>
+
+    <div style={{ padding: '8px 16px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      <Label size={18} bold color="#fff">3 Tabs</Label>
+      <Pill bg="#333" color="#fff">+ New</Pill>
+    </div>
+
+    <div style={{ flex: 1, padding: '0 16px', display: 'flex', flexDirection: 'column', gap: 12, overflowY: 'auto' }}>
+      {[
+        { title: 'Figma — Design Tool', url: 'figma.com', active: true },
+        { title: 'GitHub — Explore', url: 'github.com/explore', active: false },
+        { title: 'Apurba Tech', url: 'apurba.tech', active: false },
+      ].map((t,i) => (
+        <div key={i} style={{
+          borderRadius: 14,
+          border: t.active ? '2px solid #fff' : '1.5px solid #444',
+          overflow: 'hidden', flexShrink: 0
+        }}>
+          {/* Tab header */}
+          <div style={{ background: '#2a2a2a', padding: '8px 12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <Box w={18} h={18} r={4} bg="#555" bw={0} />
+              <Label size={12} color="#ccc">{t.url}</Label>
+            </div>
+            <Label size={16} color="#888">✕</Label>
+          </div>
+          {/* Tab preview */}
+          <Box w="100%" h={110} r={0} bg="#222" bw={0}>
+            <div style={{ width: '100%', height: '100%', padding: 10, display: 'flex', flexDirection: 'column', gap: 6 }}>
+              <SketchLine w="60%" h={10} style={{ background: '#555' }} />
+              <SketchLine w="90%" h={8} style={{ background: '#444' }} />
+              <SketchLine w="75%" h={8} style={{ background: '#444' }} />
+            </div>
+          </Box>
+        </div>
+      ))}
+    </div>
+
+    {/* Bottom toolbar */}
+    <div style={{ height: 58, borderTop: '1.5px solid #333', display: 'flex', alignItems: 'center', justifyContent: 'space-around', background: '#1a1a1a', padding: '0 8px' }}>
+      {['←','→','□','⋯','⊞'].map((ic,i) => (
+        <div key={i} style={{ width: 44, height: 44, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <Label size={20} bold color={i===4?'#fff':'#777'}>{ic}</Label>
+        </div>
+      ))}
+    </div>
+    <div style={{ height: 24, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div style={{ width: 120, height: 4, borderRadius: 2, background: '#fff', opacity: 0.2 }} />
+    </div>
+  </div>
+);
+
+/* A5: Menu */
+const A_Menu = () => (
+  <div style={{ width: 390, background: '#faf8f5', display: 'flex', flexDirection: 'column', height: '100%', position: 'relative' }}>
+    {/* Dimmed page behind */}
+    <div style={{ flex: 1, background: '#faf8f5', padding: 20, opacity: 0.4 }}>
+      <div style={{ height: 44, borderBottom: '1px solid #ddd', marginBottom: 8 }} />
+      <SketchLine w="70%" h={12} style={{ background: '#2a2a2a', opacity: 0.5, marginBottom: 10 }} />
+      <SketchLine w="90%" h={8} style={{ marginBottom: 6 }} />
+      <SketchLine w="80%" h={8} />
+    </div>
+    {/* Menu sheet */}
+    <div style={{
+      position: 'absolute', bottom: 0, left: 0, right: 0,
+      background: '#fff', borderRadius: '20px 20px 0 0',
+      border: '2px solid #2a2a2a', borderBottom: 'none',
+      padding: '16px 0 32px'
+    }}>
+      <div style={{ width: 40, height: 4, borderRadius: 2, background: '#ccc', margin: '0 auto 16px' }} />
+      {/* Quick actions row */}
+      <div style={{ display: 'flex', justifyContent: 'space-around', padding: '0 16px 16px', borderBottom: '1px solid #eee' }}>
+        {[['⟳','Reload'],['★','Bookmark'],['↑','Share'],['⊕','Add']].map(([ic,lb]) => (
+          <div key={lb} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+            <Box w={48} h={48} r={12} bg="#f0ece6" bw={1.5}>
+              <Label size={20}>{ic}</Label>
+            </Box>
+            <Label size={11} center color="#555">{lb}</Label>
+          </div>
+        ))}
+      </div>
+      {/* Menu items */}
+      {['New Tab','New Incognito Tab','History','Downloads','Settings','Help & Feedback'].map((item,i) => (
+        <div key={i} style={{ padding: '13px 20px', borderBottom: '1px solid #f0ece6', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <Label size={15}>{item}</Label>
+          <Label size={14} color="#bbb">›</Label>
+        </div>
+      ))}
+    </div>
+    <div style={{ height: 24, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#fff' }}>
+      <div style={{ width: 120, height: 4, borderRadius: 2, background: '#2a2a2a', opacity: 0.4 }} />
+    </div>
+  </div>
+);
+
+
+/* ═══════════════════════════════════
+   VARIATION B — FLOAT (Pill nav bar)
+═══════════════════════════════════ */
+
+const B_HomeScreen = () => (
+  <div style={{ width: 390, background: '#0f1117', display: 'flex', flexDirection: 'column', height: '100%', position: 'relative' }}>
+    <div style={{ height: 44, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 20px' }}>
+      <Label size={12} bold color="#fff">9:41</Label>
+      <Label size={11} color="#666">●●● ▲ ■■■■</Label>
+    </div>
+
+    {/* Big greeting */}
+    <div style={{ padding: '16px 24px 8px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
+        <OrionIcon size={30} />
+        <Label size={26} bold color="#fff">Orion</Label>
+      </div>
+      <Label size={14} color="#666">Monday, April 28</Label>
+    </div>
+
+    {/* Quick access grid */}
+    <div style={{ padding: '16px 20px', display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 14 }}>
+      {['YT','Gmaps','News','Reddit','GH','Drive','Mail','More'].map(s => (
+        <div key={s} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5 }}>
+          <Box w={52} h={52} r={16} bg="#2a2a35" border="#3a3a4a" bw={1} />
+          <Label size={11} center color="#888">{s}</Label>
+        </div>
+      ))}
+    </div>
+
+    {/* Recent */}
+    <div style={{ padding: '8px 20px 10px', flex: 1 }}>
+      <Label size={12} color="#555" bold>RECENT</Label>
+      <div style={{ marginTop: 10, display: 'flex', flexDirection: 'column', gap: 8 }}>
+        {['apurba.tech','github.com','figma.com'].map(u => (
+          <div key={u} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', borderRadius: 12, background: '#1a1a22' }}>
+            <Box w={30} h={30} r={8} bg="#2a2a35" border="#3a3a4a" bw={1} />
+            <Label size={13} color="#aaa">{u}</Label>
+          </div>
+        ))}
+      </div>
+    </div>
+
+    {/* Floating pill bar */}
+    <div style={{ padding: '10px 20px 14px' }}>
+      <div style={{
+        background: '#1e1e28', border: '1.5px solid #3a3a4a',
+        borderRadius: 32, padding: '10px 16px',
+        display: 'flex', alignItems: 'center', gap: 10
+      }}>
+        <Label size={16} color="#555">←</Label>
+        <div style={{ flex: 1, background: '#2a2a35', borderRadius: 20, padding: '6px 14px', border: '1px solid #3a3a4a' }}>
+          <Label size={13} color="#666">Search or enter address…</Label>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <Label size={16} color="#555">⊞</Label>
+          <Label size={16} color="#555">⋯</Label>
+        </div>
+      </div>
+    </div>
+    <div style={{ height: 24, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div style={{ width: 120, height: 4, borderRadius: 2, background: '#fff', opacity: 0.15 }} />
+    </div>
+  </div>
+);
+
+const B_Browsing = () => (
+  <div style={{ width: 390, background: '#0f1117', display: 'flex', flexDirection: 'column', height: '100%', position: 'relative' }}>
+    <div style={{ height: 44, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 20px' }}>
+      <Label size={12} bold color="#fff">9:41</Label>
+      <Label size={11} color="#666">●●● ▲ ■■■■</Label>
+    </div>
+
+    {/* Full-bleed page content */}
+    <div style={{ flex: 1, background: '#fff', display: 'flex', flexDirection: 'column', gap: 12, padding: 16, overflow: 'hidden' }}>
+      <Box w="100%" h={160} r={10} bg="#e5e0d8" bw={1.5} style={{ flexShrink: 0 }}>
+        <Label size={12} color="#aaa" center style={{ padding: '0 20px' }}>[ hero image ]</Label>
+      </Box>
+      <SketchLine w="70%" h={14} style={{ background: '#2a2a2a', opacity: 0.6 }} />
+      <SketchLine w="90%" h={10} />
+      <SketchLine w="85%" h={10} />
+      <SketchLine w="60%" h={10} />
+      <SketchLine w="95%" h={10} />
+      <SketchLine w="80%" h={10} />
+    </div>
+
+    {/* Floating pill bar overlaid */}
+    <div style={{ padding: '10px 20px 14px', background: 'transparent', position: 'relative' }}>
+      <div style={{
+        background: '#1e1e28dd', backdropFilter: 'blur(10px)',
+        border: '1.5px solid #3a3a4a',
+        borderRadius: 32, padding: '10px 16px',
+        display: 'flex', alignItems: 'center', gap: 10
+      }}>
+        <Label size={16} color="#888">←</Label>
+        <div style={{ flex: 1, background: '#2a2a35', borderRadius: 20, padding: '6px 14px', border: '1px solid #3a3a4a', display: 'flex', alignItems: 'center', gap: 6 }}>
+          <Label size={11} color="#888">🔒</Label>
+          <Label size={13} color="#ccc">figma.com</Label>
+        </div>
+        <Label size={16} color="#888">⊞</Label>
+        <Label size={16} color="#888">⋯</Label>
+      </div>
+    </div>
+    <div style={{ height: 24, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0f1117' }}>
+      <div style={{ width: 120, height: 4, borderRadius: 2, background: '#fff', opacity: 0.15 }} />
+    </div>
+  </div>
+);
+
+const B_Tabs = () => (
+  <div style={{ width: 390, background: '#0f1117', display: 'flex', flexDirection: 'column', height: '100%' }}>
+    <div style={{ height: 44, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 20px' }}>
+      <Label size={12} bold color="#fff">9:41</Label>
+      <Label size={11} color="#666">●●● ▲ ■■■■</Label>
+    </div>
+
+    <div style={{ padding: '8px 20px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      <Label size={18} bold color="#fff">3 Tabs</Label>
+      <div style={{ background: '#1e1e28', border: '1px solid #3a3a4a', borderRadius: 20, padding: '4px 14px' }}>
+        <Label size={13} color="#ccc">+ New</Label>
+      </div>
+    </div>
+
+    {/* 2-col grid tab view */}
+    <div style={{ flex: 1, padding: '0 16px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+      {[
+        { title: 'Figma', url: 'figma.com', active: true },
+        { title: 'GitHub', url: 'github.com', active: false },
+        { title: 'Apurba.tech', url: 'apurba.tech', active: false },
+        { title: 'New Tab', url: '', active: false, empty: true },
+      ].map((t,i) => (
+        <div key={i} style={{
+          borderRadius: 14,
+          border: t.active ? '2px solid #7c7cff' : '1px solid #2a2a35',
+          overflow: 'hidden', background: '#1a1a22', height: 160
+        }}>
+          {!t.empty ? <>
+            <div style={{ background: '#222230', padding: '6px 10px', display: 'flex', justifyContent: 'space-between' }}>
+              <Label size={11} color="#aaa">{t.url}</Label>
+              <Label size={13} color="#666">✕</Label>
+            </div>
+            <div style={{ padding: 8 }}>
+              <SketchLine w="80%" h={8} style={{ background: '#333', marginBottom: 6 }} />
+              <SketchLine w="100%" h={6} style={{ background: '#2a2a35' }} />
+            </div>
+          </> : (
+            <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Label size={28} color="#333">+</Label>
+            </div>
+          )}
+        </div>
+      ))}
+    </div>
+
+    {/* Floating pill */}
+    <div style={{ padding: '10px 20px 14px' }}>
+      <div style={{
+        background: '#1e1e28', border: '1.5px solid #3a3a4a',
+        borderRadius: 32, padding: '10px 20px',
+        display: 'flex', alignItems: 'center', justifyContent: 'space-around'
+      }}>
+        <Label size={14} color="#888">Done</Label>
+        <Label size={16} color="#888">⊞</Label>
+        <Label size={14} color="#7c7cff">Private</Label>
+      </div>
+    </div>
+    <div style={{ height: 24, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div style={{ width: 120, height: 4, borderRadius: 2, background: '#fff', opacity: 0.15 }} />
+    </div>
+  </div>
+);
+
+const B_Menu = () => (
+  <div style={{ width: 390, background: '#0f1117', display: 'flex', flexDirection: 'column', height: '100%', position: 'relative' }}>
+    <div style={{ height: 44, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 20px' }}>
+      <Label size={12} bold color="#fff">9:41</Label>
+      <Label size={11} color="#666">●●● ▲ ■■■■</Label>
+    </div>
+    <div style={{ flex: 1, opacity: 0.3, padding: 20 }}>
+      <SketchLine w="70%" h={12} style={{ background: '#fff', opacity: 0.3, marginBottom: 8 }} />
+      <SketchLine w="90%" h={8} style={{ background: '#fff', opacity: 0.2 }} />
+    </div>
+    {/* Dark menu sheet */}
+    <div style={{
+      position: 'absolute', bottom: 0, left: 0, right: 0,
+      background: '#1a1a22', borderRadius: '20px 20px 0 0',
+      border: '1.5px solid #2a2a35', borderBottom: 'none',
+      padding: '16px 0 32px'
+    }}>
+      <div style={{ width: 40, height: 4, borderRadius: 2, background: '#333', margin: '0 auto 16px' }} />
+      <div style={{ display: 'flex', justifyContent: 'space-around', padding: '0 16px 16px', borderBottom: '1px solid #2a2a35' }}>
+        {[['⟳','Reload'],['★','Bookmark'],['↑','Share'],['⊕','Add']].map(([ic,lb]) => (
+          <div key={lb} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+            <Box w={48} h={48} r={12} bg="#222230" border="#3a3a4a" bw={1}>
+              <Label size={20} color="#ccc">{ic}</Label>
+            </Box>
+            <Label size={11} center color="#666">{lb}</Label>
+          </div>
+        ))}
+      </div>
+      {['New Tab','Incognito Tab','History','Downloads','Settings','Feedback'].map((item,i) => (
+        <div key={i} style={{ padding: '13px 20px', borderBottom: '1px solid #1e1e28', display: 'flex', justifyContent: 'space-between' }}>
+          <Label size={15} color="#ccc">{item}</Label>
+          <Label size={14} color="#444">›</Label>
+        </div>
+      ))}
+    </div>
+    <div style={{ height: 24, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#1a1a22' }}>
+      <div style={{ width: 120, height: 4, borderRadius: 2, background: '#fff', opacity: 0.15 }} />
+    </div>
+  </div>
+);
+
+/* ── iOS wrapper ── */
+const Phone = ({ children, label }) => (
+  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
+    <div style={{
+      width: 390, height: 844,
+      borderRadius: 54, overflow: 'hidden',
+      border: '3px solid #2a2a2a',
+      boxShadow: '6px 8px 0 #2a2a2a',
+      background: '#faf8f5',
+      display: 'flex', flexDirection: 'column'
+    }}>
+      {children}
+    </div>
+    <Label size={14} color="#666" center>{label}</Label>
+  </div>
+);
+
+/* ── Main canvas ── */
+const App = () => (
+  <DesignCanvas title="Orion Browser — Wireframes">
+    <DCSection id="intro" title="Orion Browser">
+      <DCArtboard id="icon" label="Icon concept" width={300} height={200}>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', gap: 16, background: '#faf8f5', fontFamily: "'Caveat', cursive" }}>
+          <div style={{ display: 'flex', gap: 32, alignItems: 'center' }}>
+            {[36, 52, 72].map(s => (
+              <div key={s} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
+                <div style={{ width: s+16, height: s+16, borderRadius: s/3, background: '#1a1a1a', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <OrionIcon size={s} />
+                </div>
+              </div>
+            ))}
+          </div>
+          <Label size={13} color="#999" center>Orbit ring icon — geometric, distinct from Chrome</Label>
+        </div>
+      </DCArtboard>
+    </DCSection>
+
+    <DCSection id="varA" title="Variation A — Classic (Bottom Toolbar, Light)">
+      <DCArtboard id="a-home" label="Home / New Tab" width={390} height={844}>
+        <A_HomeScreen />
+      </DCArtboard>
+      <DCArtboard id="a-addr" label="Address Bar" width={390} height={844}>
+        <A_AddressBar />
+      </DCArtboard>
+      <DCArtboard id="a-browse" label="Browsing" width={390} height={844}>
+        <A_Browsing />
+      </DCArtboard>
+      <DCArtboard id="a-tabs" label="Tab Switcher" width={390} height={844}>
+        <A_Tabs />
+      </DCArtboard>
+      <DCArtboard id="a-menu" label="Menu" width={390} height={844}>
+        <A_Menu />
+      </DCArtboard>
+    </DCSection>
+
+    <DCSection id="varB" title="Variation B — Float (Pill Nav Bar, Dark)">
+      <DCArtboard id="b-home" label="Home / New Tab" width={390} height={844}>
+        <B_HomeScreen />
+      </DCArtboard>
+      <DCArtboard id="b-addr" label="Address Bar" width={390} height={844}>
+        <A_AddressBar />
+      </DCArtboard>
+      <DCArtboard id="b-browse" label="Browsing" width={390} height={844}>
+        <B_Browsing />
+      </DCArtboard>
+      <DCArtboard id="b-tabs" label="Tab Switcher" width={390} height={844}>
+        <B_Tabs />
+      </DCArtboard>
+      <DCArtboard id="b-menu" label="Menu" width={390} height={844}>
+        <B_Menu />
+      </DCArtboard>
+    </DCSection>
+  </DesignCanvas>
+);
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+<div id="root" style="width:100vw;height:100vh;"></div>
+</body>
+</html>

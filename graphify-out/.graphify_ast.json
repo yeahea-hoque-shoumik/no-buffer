@@ -1,0 +1,1593 @@
+{
+  "nodes": [
+    {
+      "id": "build_gradle_kts",
+      "label": "build.gradle.kts",
+      "file_type": "code",
+      "source_file": "build.gradle.kts",
+      "source_location": "L1"
+    },
+    {
+      "id": "settings_gradle_kts",
+      "label": "settings.gradle.kts",
+      "file_type": "code",
+      "source_file": "settings.gradle.kts",
+      "source_location": "L1"
+    },
+    {
+      "id": "design_project_ios_frame_jsx",
+      "label": "ios-frame.jsx",
+      "file_type": "code",
+      "source_file": "design/project/ios-frame.jsx",
+      "source_location": "L1"
+    },
+    {
+      "id": "project_ios_frame_iosstatusbar",
+      "label": "IOSStatusBar()",
+      "file_type": "code",
+      "source_file": "design/project/ios-frame.jsx",
+      "source_location": "L9"
+    },
+    {
+      "id": "project_ios_frame_iosglasspill",
+      "label": "IOSGlassPill()",
+      "file_type": "code",
+      "source_file": "design/project/ios-frame.jsx",
+      "source_location": "L48"
+    },
+    {
+      "id": "project_ios_frame_iosnavbar",
+      "label": "IOSNavBar()",
+      "file_type": "code",
+      "source_file": "design/project/ios-frame.jsx",
+      "source_location": "L84"
+    },
+    {
+      "id": "project_ios_frame_ioslistrow",
+      "label": "IOSListRow()",
+      "file_type": "code",
+      "source_file": "design/project/ios-frame.jsx",
+      "source_location": "L132"
+    },
+    {
+      "id": "project_ios_frame_ioslist",
+      "label": "IOSList()",
+      "file_type": "code",
+      "source_file": "design/project/ios-frame.jsx",
+      "source_location": "L167"
+    },
+    {
+      "id": "project_ios_frame_iosdevice",
+      "label": "IOSDevice()",
+      "file_type": "code",
+      "source_file": "design/project/ios-frame.jsx",
+      "source_location": "L190"
+    },
+    {
+      "id": "project_ios_frame_ioskeyboard",
+      "label": "IOSKeyboard()",
+      "file_type": "code",
+      "source_file": "design/project/ios-frame.jsx",
+      "source_location": "L235"
+    },
+    {
+      "id": "design_project_design_canvas_jsx",
+      "label": "design-canvas.jsx",
+      "file_type": "code",
+      "source_file": "design/project/design-canvas.jsx",
+      "source_location": "L1"
+    },
+    {
+      "id": "project_design_canvas_designcanvas",
+      "label": "DesignCanvas()",
+      "file_type": "code",
+      "source_file": "design/project/design-canvas.jsx",
+      "source_location": "L71"
+    },
+    {
+      "id": "project_design_canvas_dcviewport",
+      "label": "DCViewport()",
+      "file_type": "code",
+      "source_file": "design/project/design-canvas.jsx",
+      "source_location": "L182"
+    },
+    {
+      "id": "project_design_canvas_dcsection",
+      "label": "DCSection()",
+      "file_type": "code",
+      "source_file": "design/project/design-canvas.jsx",
+      "source_location": "L333"
+    },
+    {
+      "id": "project_design_canvas_dcartboard",
+      "label": "DCArtboard()",
+      "file_type": "code",
+      "source_file": "design/project/design-canvas.jsx",
+      "source_location": "L372"
+    },
+    {
+      "id": "project_design_canvas_dcartboardframe",
+      "label": "DCArtboardFrame()",
+      "file_type": "code",
+      "source_file": "design/project/design-canvas.jsx",
+      "source_location": "L374"
+    },
+    {
+      "id": "project_design_canvas_dceditable",
+      "label": "DCEditable()",
+      "file_type": "code",
+      "source_file": "design/project/design-canvas.jsx",
+      "source_location": "L464"
+    },
+    {
+      "id": "project_design_canvas_dcfocusoverlay",
+      "label": "DCFocusOverlay()",
+      "file_type": "code",
+      "source_file": "design/project/design-canvas.jsx",
+      "source_location": "L480"
+    },
+    {
+      "id": "project_design_canvas_dcpostit",
+      "label": "DCPostIt()",
+      "file_type": "code",
+      "source_file": "design/project/design-canvas.jsx",
+      "source_location": "L607"
+    },
+    {
+      "id": "app_build_gradle_kts",
+      "label": "build.gradle.kts",
+      "file_type": "code",
+      "source_file": "app/build.gradle.kts",
+      "source_location": "L1"
+    },
+    {
+      "id": "app_src_androidtest_java_com_prime_browser_exampleinstrumentedtest_kt",
+      "label": "ExampleInstrumentedTest.kt",
+      "file_type": "code",
+      "source_file": "app/src/androidTest/java/com/prime/browser/ExampleInstrumentedTest.kt",
+      "source_location": "L1"
+    },
+    {
+      "id": "browser_exampleinstrumentedtest_exampleinstrumentedtest",
+      "label": "ExampleInstrumentedTest",
+      "file_type": "code",
+      "source_file": "app/src/androidTest/java/com/prime/browser/ExampleInstrumentedTest.kt",
+      "source_location": "L16"
+    },
+    {
+      "id": "browser_exampleinstrumentedtest_exampleinstrumentedtest_useappcontext",
+      "label": ".useAppContext()",
+      "file_type": "code",
+      "source_file": "app/src/androidTest/java/com/prime/browser/ExampleInstrumentedTest.kt",
+      "source_location": "L18"
+    },
+    {
+      "id": "app_src_test_java_com_prime_browser_exampleunittest_kt",
+      "label": "ExampleUnitTest.kt",
+      "file_type": "code",
+      "source_file": "app/src/test/java/com/prime/browser/ExampleUnitTest.kt",
+      "source_location": "L1"
+    },
+    {
+      "id": "browser_exampleunittest_exampleunittest",
+      "label": "ExampleUnitTest",
+      "file_type": "code",
+      "source_file": "app/src/test/java/com/prime/browser/ExampleUnitTest.kt",
+      "source_location": "L12"
+    },
+    {
+      "id": "browser_exampleunittest_exampleunittest_addition_iscorrect",
+      "label": ".addition_isCorrect()",
+      "file_type": "code",
+      "source_file": "app/src/test/java/com/prime/browser/ExampleUnitTest.kt",
+      "source_location": "L13"
+    },
+    {
+      "id": "app_src_main_java_com_prime_browser_mainactivity_kt",
+      "label": "MainActivity.kt",
+      "file_type": "code",
+      "source_file": "app/src/main/java/com/prime/browser/MainActivity.kt",
+      "source_location": "L1"
+    },
+    {
+      "id": "browser_mainactivity_mainactivity",
+      "label": "MainActivity",
+      "file_type": "code",
+      "source_file": "app/src/main/java/com/prime/browser/MainActivity.kt",
+      "source_location": "L21"
+    },
+    {
+      "id": "browser_mainactivity_mainactivity_oncreate",
+      "label": ".onCreate()",
+      "file_type": "code",
+      "source_file": "app/src/main/java/com/prime/browser/MainActivity.kt",
+      "source_location": "L22"
+    },
+    {
+      "id": "browser_mainactivity_browsernavhost",
+      "label": "BrowserNavHost()",
+      "file_type": "code",
+      "source_file": "app/src/main/java/com/prime/browser/MainActivity.kt",
+      "source_location": "L33"
+    },
+    {
+      "id": "browser_mainactivity_placeholderscreen",
+      "label": "PlaceholderScreen()",
+      "file_type": "code",
+      "source_file": "app/src/main/java/com/prime/browser/MainActivity.kt",
+      "source_location": "L78"
+    },
+    {
+      "id": "app_src_main_java_com_prime_browser_browserapplication_kt",
+      "label": "BrowserApplication.kt",
+      "file_type": "code",
+      "source_file": "app/src/main/java/com/prime/browser/BrowserApplication.kt",
+      "source_location": "L1"
+    },
+    {
+      "id": "browser_browserapplication_browserapplication",
+      "label": "BrowserApplication",
+      "file_type": "code",
+      "source_file": "app/src/main/java/com/prime/browser/BrowserApplication.kt",
+      "source_location": "L8"
+    },
+    {
+      "id": "app_src_main_java_com_prime_browser_ui_theme_color_kt",
+      "label": "Color.kt",
+      "file_type": "code",
+      "source_file": "app/src/main/java/com/prime/browser/ui/theme/Color.kt",
+      "source_location": "L1"
+    },
+    {
+      "id": "app_src_main_java_com_prime_browser_ui_theme_theme_kt",
+      "label": "Theme.kt",
+      "file_type": "code",
+      "source_file": "app/src/main/java/com/prime/browser/ui/theme/Theme.kt",
+      "source_location": "L1"
+    },
+    {
+      "id": "theme_theme_browsertheme",
+      "label": "BrowserTheme()",
+      "file_type": "code",
+      "source_file": "app/src/main/java/com/prime/browser/ui/theme/Theme.kt",
+      "source_location": "L49"
+    },
+    {
+      "id": "theme_theme_incognitotheme",
+      "label": "IncognitoTheme()",
+      "file_type": "code",
+      "source_file": "app/src/main/java/com/prime/browser/ui/theme/Theme.kt",
+      "source_location": "L70"
+    },
+    {
+      "id": "app_src_main_java_com_prime_browser_ui_theme_type_kt",
+      "label": "Type.kt",
+      "file_type": "code",
+      "source_file": "app/src/main/java/com/prime/browser/ui/theme/Type.kt",
+      "source_location": "L1"
+    },
+    {
+      "id": "app_src_main_java_com_prime_browser_navigation_screen_kt",
+      "label": "Screen.kt",
+      "file_type": "code",
+      "source_file": "app/src/main/java/com/prime/browser/navigation/Screen.kt",
+      "source_location": "L1"
+    },
+    {
+      "id": "navigation_screen_screen",
+      "label": "Screen",
+      "file_type": "code",
+      "source_file": "app/src/main/java/com/prime/browser/navigation/Screen.kt",
+      "source_location": "L3"
+    },
+    {
+      "id": "navigation_screen_browser",
+      "label": "Browser",
+      "file_type": "code",
+      "source_file": "app/src/main/java/com/prime/browser/navigation/Screen.kt",
+      "source_location": "L4"
+    },
+    {
+      "id": "navigation_screen_tabswitcher",
+      "label": "TabSwitcher",
+      "file_type": "code",
+      "source_file": "app/src/main/java/com/prime/browser/navigation/Screen.kt",
+      "source_location": "L5"
+    },
+    {
+      "id": "navigation_screen_omnibox",
+      "label": "Omnibox",
+      "file_type": "code",
+      "source_file": "app/src/main/java/com/prime/browser/navigation/Screen.kt",
+      "source_location": "L6"
+    },
+    {
+      "id": "navigation_screen_omnibox_withurl",
+      "label": ".withUrl()",
+      "file_type": "code",
+      "source_file": "app/src/main/java/com/prime/browser/navigation/Screen.kt",
+      "source_location": "L7"
+    },
+    {
+      "id": "navigation_screen_history",
+      "label": "History",
+      "file_type": "code",
+      "source_file": "app/src/main/java/com/prime/browser/navigation/Screen.kt",
+      "source_location": "L9"
+    },
+    {
+      "id": "navigation_screen_bookmarks",
+      "label": "Bookmarks",
+      "file_type": "code",
+      "source_file": "app/src/main/java/com/prime/browser/navigation/Screen.kt",
+      "source_location": "L10"
+    },
+    {
+      "id": "navigation_screen_downloads",
+      "label": "Downloads",
+      "file_type": "code",
+      "source_file": "app/src/main/java/com/prime/browser/navigation/Screen.kt",
+      "source_location": "L11"
+    },
+    {
+      "id": "navigation_screen_settings",
+      "label": "Settings",
+      "file_type": "code",
+      "source_file": "app/src/main/java/com/prime/browser/navigation/Screen.kt",
+      "source_location": "L12"
+    },
+    {
+      "id": "navigation_screen_settingsprivacy",
+      "label": "SettingsPrivacy",
+      "file_type": "code",
+      "source_file": "app/src/main/java/com/prime/browser/navigation/Screen.kt",
+      "source_location": "L13"
+    },
+    {
+      "id": "navigation_screen_settingssite",
+      "label": "SettingsSite",
+      "file_type": "code",
+      "source_file": "app/src/main/java/com/prime/browser/navigation/Screen.kt",
+      "source_location": "L14"
+    },
+    {
+      "id": "app_src_main_java_com_prime_browser_browser_browserwebviewcomposable_kt",
+      "label": "BrowserWebViewComposable.kt",
+      "file_type": "code",
+      "source_file": "app/src/main/java/com/prime/browser/browser/BrowserWebViewComposable.kt",
+      "source_location": "L1"
+    },
+    {
+      "id": "browser_browserwebviewcomposable_browserwebviewcomposable",
+      "label": "BrowserWebViewComposable()",
+      "file_type": "code",
+      "source_file": "app/src/main/java/com/prime/browser/browser/BrowserWebViewComposable.kt",
+      "source_location": "L18"
+    },
+    {
+      "id": "browser_browserwebviewcomposable_showsslerrordialog",
+      "label": "showSslErrorDialog()",
+      "file_type": "code",
+      "source_file": "app/src/main/java/com/prime/browser/browser/BrowserWebViewComposable.kt",
+      "source_location": "L72"
+    },
+    {
+      "id": "browser_browserwebviewcomposable_sslerrordescription",
+      "label": "sslErrorDescription()",
+      "file_type": "code",
+      "source_file": "app/src/main/java/com/prime/browser/browser/BrowserWebViewComposable.kt",
+      "source_location": "L87"
+    },
+    {
+      "id": "app_src_main_java_com_prime_browser_browser_browserwebviewclient_kt",
+      "label": "BrowserWebViewClient.kt",
+      "file_type": "code",
+      "source_file": "app/src/main/java/com/prime/browser/browser/BrowserWebViewClient.kt",
+      "source_location": "L1"
+    },
+    {
+      "id": "browser_browserwebviewclient_browserwebviewclient",
+      "label": "BrowserWebViewClient",
+      "file_type": "code",
+      "source_file": "app/src/main/java/com/prime/browser/browser/BrowserWebViewClient.kt",
+      "source_location": "L12"
+    },
+    {
+      "id": "browser_browserwebviewclient_browserwebviewclient_shouldinterceptrequest",
+      "label": ".shouldInterceptRequest()",
+      "file_type": "code",
+      "source_file": "app/src/main/java/com/prime/browser/browser/BrowserWebViewClient.kt",
+      "source_location": "L20"
+    },
+    {
+      "id": "browser_browserwebviewclient_browserwebviewclient_onpagestarted",
+      "label": ".onPageStarted()",
+      "file_type": "code",
+      "source_file": "app/src/main/java/com/prime/browser/browser/BrowserWebViewClient.kt",
+      "source_location": "L31"
+    },
+    {
+      "id": "browser_browserwebviewclient_browserwebviewclient_onpagefinished",
+      "label": ".onPageFinished()",
+      "file_type": "code",
+      "source_file": "app/src/main/java/com/prime/browser/browser/BrowserWebViewClient.kt",
+      "source_location": "L37"
+    },
+    {
+      "id": "browser_browserwebviewclient_browserwebviewclient_onreceivedsslerror",
+      "label": ".onReceivedSslError()",
+      "file_type": "code",
+      "source_file": "app/src/main/java/com/prime/browser/browser/BrowserWebViewClient.kt",
+      "source_location": "L43"
+    },
+    {
+      "id": "browser_browserwebviewclient_browserwebviewclient_isvideourl",
+      "label": ".isVideoUrl()",
+      "file_type": "code",
+      "source_file": "app/src/main/java/com/prime/browser/browser/BrowserWebViewClient.kt",
+      "source_location": "L47"
+    },
+    {
+      "id": "app_src_main_java_com_prime_browser_browser_browserwebchromeclient_kt",
+      "label": "BrowserWebChromeClient.kt",
+      "file_type": "code",
+      "source_file": "app/src/main/java/com/prime/browser/browser/BrowserWebChromeClient.kt",
+      "source_location": "L1"
+    },
+    {
+      "id": "browser_browserwebchromeclient_browserwebchromeclient",
+      "label": "BrowserWebChromeClient",
+      "file_type": "code",
+      "source_file": "app/src/main/java/com/prime/browser/browser/BrowserWebChromeClient.kt",
+      "source_location": "L8"
+    },
+    {
+      "id": "browser_browserwebchromeclient_browserwebchromeclient_onprogresschanged",
+      "label": ".onProgressChanged()",
+      "file_type": "code",
+      "source_file": "app/src/main/java/com/prime/browser/browser/BrowserWebChromeClient.kt",
+      "source_location": "L14"
+    },
+    {
+      "id": "browser_browserwebchromeclient_browserwebchromeclient_onreceivedtitle",
+      "label": ".onReceivedTitle()",
+      "file_type": "code",
+      "source_file": "app/src/main/java/com/prime/browser/browser/BrowserWebChromeClient.kt",
+      "source_location": "L19"
+    },
+    {
+      "id": "browser_browserwebchromeclient_browserwebchromeclient_onreceivedicon",
+      "label": ".onReceivedIcon()",
+      "file_type": "code",
+      "source_file": "app/src/main/java/com/prime/browser/browser/BrowserWebChromeClient.kt",
+      "source_location": "L24"
+    },
+    {
+      "id": "browser_browserwebchromeclient_browserwebchromeclient_onshowcustomview",
+      "label": ".onShowCustomView()",
+      "file_type": "code",
+      "source_file": "app/src/main/java/com/prime/browser/browser/BrowserWebChromeClient.kt",
+      "source_location": "L30"
+    },
+    {
+      "id": "browser_browserwebchromeclient_browserwebchromeclient_onhidecustomview",
+      "label": ".onHideCustomView()",
+      "file_type": "code",
+      "source_file": "app/src/main/java/com/prime/browser/browser/BrowserWebChromeClient.kt",
+      "source_location": "L34"
+    },
+    {
+      "id": "app_src_main_java_com_prime_browser_browser_browserwebview_kt",
+      "label": "BrowserWebView.kt",
+      "file_type": "code",
+      "source_file": "app/src/main/java/com/prime/browser/browser/BrowserWebView.kt",
+      "source_location": "L1"
+    },
+    {
+      "id": "browser_browserwebview_browserwebview",
+      "label": "BrowserWebView",
+      "file_type": "code",
+      "source_file": "app/src/main/java/com/prime/browser/browser/BrowserWebView.kt",
+      "source_location": "L10"
+    },
+    {
+      "id": "app_src_main_java_com_prime_browser_data_browserrepository_kt",
+      "label": "BrowserRepository.kt",
+      "file_type": "code",
+      "source_file": "app/src/main/java/com/prime/browser/data/BrowserRepository.kt",
+      "source_location": "L1"
+    },
+    {
+      "id": "data_browserrepository_browserrepository",
+      "label": "BrowserRepository",
+      "file_type": "code",
+      "source_file": "app/src/main/java/com/prime/browser/data/BrowserRepository.kt",
+      "source_location": "L7"
+    },
+    {
+      "id": "data_browserrepository_browserrepository_inserthistory",
+      "label": ".insertHistory()",
+      "file_type": "code",
+      "source_file": "app/src/main/java/com/prime/browser/data/BrowserRepository.kt",
+      "source_location": "L11"
+    },
+    {
+      "id": "data_browserrepository_browserrepository_deletehistory",
+      "label": ".deleteHistory()",
+      "file_type": "code",
+      "source_file": "app/src/main/java/com/prime/browser/data/BrowserRepository.kt",
+      "source_location": "L13"
+    },
+    {
+      "id": "data_browserrepository_browserrepository_clearallhistory",
+      "label": ".clearAllHistory()",
+      "file_type": "code",
+      "source_file": "app/src/main/java/com/prime/browser/data/BrowserRepository.kt",
+      "source_location": "L15"
+    },
+    {
+      "id": "data_browserrepository_browserrepository_searchhistory",
+      "label": ".searchHistory()",
+      "file_type": "code",
+      "source_file": "app/src/main/java/com/prime/browser/data/BrowserRepository.kt",
+      "source_location": "L17"
+    },
+    {
+      "id": "data_browserrepository_browserrepository_observehistory",
+      "label": ".observeHistory()",
+      "file_type": "code",
+      "source_file": "app/src/main/java/com/prime/browser/data/BrowserRepository.kt",
+      "source_location": "L20"
+    },
+    {
+      "id": "data_browserrepository_browserrepository_findhistorybyurl",
+      "label": ".findHistoryByUrl()",
+      "file_type": "code",
+      "source_file": "app/src/main/java/com/prime/browser/data/BrowserRepository.kt",
+      "source_location": "L22"
+    },
+    {
+      "id": "data_browserrepository_browserrepository_insertbookmark",
+      "label": ".insertBookmark()",
+      "file_type": "code",
+      "source_file": "app/src/main/java/com/prime/browser/data/BrowserRepository.kt",
+      "source_location": "L27"
+    },
+    {
+      "id": "data_browserrepository_browserrepository_updatebookmark",
+      "label": ".updateBookmark()",
+      "file_type": "code",
+      "source_file": "app/src/main/java/com/prime/browser/data/BrowserRepository.kt",
+      "source_location": "L30"
+    },
+    {
+      "id": "data_browserrepository_browserrepository_deletebookmark",
+      "label": ".deleteBookmark()",
+      "file_type": "code",
+      "source_file": "app/src/main/java/com/prime/browser/data/BrowserRepository.kt",
+      "source_location": "L32"
+    },
+    {
+      "id": "data_browserrepository_browserrepository_searchbookmarks",
+      "label": ".searchBookmarks()",
+      "file_type": "code",
+      "source_file": "app/src/main/java/com/prime/browser/data/BrowserRepository.kt",
+      "source_location": "L34"
+    },
+    {
+      "id": "data_browserrepository_browserrepository_isbookmarked",
+      "label": ".isBookmarked()",
+      "file_type": "code",
+      "source_file": "app/src/main/java/com/prime/browser/data/BrowserRepository.kt",
+      "source_location": "L37"
+    },
+    {
+      "id": "data_browserrepository_browserrepository_observebookmarks",
+      "label": ".observeBookmarks()",
+      "file_type": "code",
+      "source_file": "app/src/main/java/com/prime/browser/data/BrowserRepository.kt",
+      "source_location": "L39"
+    },
+    {
+      "id": "data_browserrepository_browserrepository_observebookmarksbyparent",
+      "label": ".observeBookmarksByParent()",
+      "file_type": "code",
+      "source_file": "app/src/main/java/com/prime/browser/data/BrowserRepository.kt",
+      "source_location": "L41"
+    },
+    {
+      "id": "data_browserrepository_browserrepository_findbookmarkbyurl",
+      "label": ".findBookmarkByUrl()",
+      "file_type": "code",
+      "source_file": "app/src/main/java/com/prime/browser/data/BrowserRepository.kt",
+      "source_location": "L44"
+    },
+    {
+      "id": "app_src_main_java_com_prime_browser_data_browserdatabase_kt",
+      "label": "BrowserDatabase.kt",
+      "file_type": "code",
+      "source_file": "app/src/main/java/com/prime/browser/data/BrowserDatabase.kt",
+      "source_location": "L1"
+    },
+    {
+      "id": "data_browserdatabase_browserdatabase",
+      "label": "BrowserDatabase",
+      "file_type": "code",
+      "source_file": "app/src/main/java/com/prime/browser/data/BrowserDatabase.kt",
+      "source_location": "L10"
+    },
+    {
+      "id": "data_browserdatabase_browserdatabase_historydao",
+      "label": ".historyDao()",
+      "file_type": "code",
+      "source_file": "app/src/main/java/com/prime/browser/data/BrowserDatabase.kt",
+      "source_location": "L16"
+    },
+    {
+      "id": "data_browserdatabase_browserdatabase_bookmarkdao",
+      "label": ".bookmarkDao()",
+      "file_type": "code",
+      "source_file": "app/src/main/java/com/prime/browser/data/BrowserDatabase.kt",
+      "source_location": "L17"
+    },
+    {
+      "id": "app_src_main_java_com_prime_browser_data_entity_bookmark_kt",
+      "label": "Bookmark.kt",
+      "file_type": "code",
+      "source_file": "app/src/main/java/com/prime/browser/data/entity/Bookmark.kt",
+      "source_location": "L1"
+    },
+    {
+      "id": "entity_bookmark_bookmark",
+      "label": "Bookmark",
+      "file_type": "code",
+      "source_file": "app/src/main/java/com/prime/browser/data/entity/Bookmark.kt",
+      "source_location": "L6"
+    },
+    {
+      "id": "app_src_main_java_com_prime_browser_data_entity_historyentry_kt",
+      "label": "HistoryEntry.kt",
+      "file_type": "code",
+      "source_file": "app/src/main/java/com/prime/browser/data/entity/HistoryEntry.kt",
+      "source_location": "L1"
+    },
+    {
+      "id": "entity_historyentry_historyentry",
+      "label": "HistoryEntry",
+      "file_type": "code",
+      "source_file": "app/src/main/java/com/prime/browser/data/entity/HistoryEntry.kt",
+      "source_location": "L6"
+    },
+    {
+      "id": "app_src_main_java_com_prime_browser_data_dao_bookmarkdao_kt",
+      "label": "BookmarkDao.kt",
+      "file_type": "code",
+      "source_file": "app/src/main/java/com/prime/browser/data/dao/BookmarkDao.kt",
+      "source_location": "L1"
+    },
+    {
+      "id": "dao_bookmarkdao_bookmarkdao",
+      "label": "BookmarkDao",
+      "file_type": "code",
+      "source_file": "app/src/main/java/com/prime/browser/data/dao/BookmarkDao.kt",
+      "source_location": "L11"
+    },
+    {
+      "id": "dao_bookmarkdao_bookmarkdao_insert",
+      "label": ".insert()",
+      "file_type": "code",
+      "source_file": "app/src/main/java/com/prime/browser/data/dao/BookmarkDao.kt",
+      "source_location": "L14"
+    },
+    {
+      "id": "dao_bookmarkdao_bookmarkdao_update",
+      "label": ".update()",
+      "file_type": "code",
+      "source_file": "app/src/main/java/com/prime/browser/data/dao/BookmarkDao.kt",
+      "source_location": "L17"
+    },
+    {
+      "id": "dao_bookmarkdao_bookmarkdao_delete",
+      "label": ".delete()",
+      "file_type": "code",
+      "source_file": "app/src/main/java/com/prime/browser/data/dao/BookmarkDao.kt",
+      "source_location": "L20"
+    },
+    {
+      "id": "dao_bookmarkdao_bookmarkdao_search",
+      "label": ".search()",
+      "file_type": "code",
+      "source_file": "app/src/main/java/com/prime/browser/data/dao/BookmarkDao.kt",
+      "source_location": "L23"
+    },
+    {
+      "id": "dao_bookmarkdao_bookmarkdao_isbookmarked",
+      "label": ".isBookmarked()",
+      "file_type": "code",
+      "source_file": "app/src/main/java/com/prime/browser/data/dao/BookmarkDao.kt",
+      "source_location": "L30"
+    },
+    {
+      "id": "dao_bookmarkdao_bookmarkdao_observeall",
+      "label": ".observeAll()",
+      "file_type": "code",
+      "source_file": "app/src/main/java/com/prime/browser/data/dao/BookmarkDao.kt",
+      "source_location": "L33"
+    },
+    {
+      "id": "dao_bookmarkdao_bookmarkdao_observebyparent",
+      "label": ".observeByParent()",
+      "file_type": "code",
+      "source_file": "app/src/main/java/com/prime/browser/data/dao/BookmarkDao.kt",
+      "source_location": "L36"
+    },
+    {
+      "id": "dao_bookmarkdao_bookmarkdao_findbyurl",
+      "label": ".findByUrl()",
+      "file_type": "code",
+      "source_file": "app/src/main/java/com/prime/browser/data/dao/BookmarkDao.kt",
+      "source_location": "L39"
+    },
+    {
+      "id": "app_src_main_java_com_prime_browser_data_dao_historydao_kt",
+      "label": "HistoryDao.kt",
+      "file_type": "code",
+      "source_file": "app/src/main/java/com/prime/browser/data/dao/HistoryDao.kt",
+      "source_location": "L1"
+    },
+    {
+      "id": "dao_historydao_historydao",
+      "label": "HistoryDao",
+      "file_type": "code",
+      "source_file": "app/src/main/java/com/prime/browser/data/dao/HistoryDao.kt",
+      "source_location": "L10"
+    },
+    {
+      "id": "dao_historydao_historydao_insert",
+      "label": ".insert()",
+      "file_type": "code",
+      "source_file": "app/src/main/java/com/prime/browser/data/dao/HistoryDao.kt",
+      "source_location": "L13"
+    },
+    {
+      "id": "dao_historydao_historydao_delete",
+      "label": ".delete()",
+      "file_type": "code",
+      "source_file": "app/src/main/java/com/prime/browser/data/dao/HistoryDao.kt",
+      "source_location": "L16"
+    },
+    {
+      "id": "dao_historydao_historydao_clearall",
+      "label": ".clearAll()",
+      "file_type": "code",
+      "source_file": "app/src/main/java/com/prime/browser/data/dao/HistoryDao.kt",
+      "source_location": "L19"
+    },
+    {
+      "id": "dao_historydao_historydao_search",
+      "label": ".search()",
+      "file_type": "code",
+      "source_file": "app/src/main/java/com/prime/browser/data/dao/HistoryDao.kt",
+      "source_location": "L22"
+    },
+    {
+      "id": "dao_historydao_historydao_observeall",
+      "label": ".observeAll()",
+      "file_type": "code",
+      "source_file": "app/src/main/java/com/prime/browser/data/dao/HistoryDao.kt",
+      "source_location": "L29"
+    },
+    {
+      "id": "dao_historydao_historydao_findbyurl",
+      "label": ".findByUrl()",
+      "file_type": "code",
+      "source_file": "app/src/main/java/com/prime/browser/data/dao/HistoryDao.kt",
+      "source_location": "L32"
+    }
+  ],
+  "edges": [
+    {
+      "source": "design_project_ios_frame_jsx",
+      "target": "project_ios_frame_iosstatusbar",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "design/project/ios-frame.jsx",
+      "source_location": "L9",
+      "weight": 1.0
+    },
+    {
+      "source": "design_project_ios_frame_jsx",
+      "target": "project_ios_frame_iosglasspill",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "design/project/ios-frame.jsx",
+      "source_location": "L48",
+      "weight": 1.0
+    },
+    {
+      "source": "design_project_ios_frame_jsx",
+      "target": "project_ios_frame_iosnavbar",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "design/project/ios-frame.jsx",
+      "source_location": "L84",
+      "weight": 1.0
+    },
+    {
+      "source": "design_project_ios_frame_jsx",
+      "target": "project_ios_frame_ioslistrow",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "design/project/ios-frame.jsx",
+      "source_location": "L132",
+      "weight": 1.0
+    },
+    {
+      "source": "design_project_ios_frame_jsx",
+      "target": "project_ios_frame_ioslist",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "design/project/ios-frame.jsx",
+      "source_location": "L167",
+      "weight": 1.0
+    },
+    {
+      "source": "design_project_ios_frame_jsx",
+      "target": "project_ios_frame_iosdevice",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "design/project/ios-frame.jsx",
+      "source_location": "L190",
+      "weight": 1.0
+    },
+    {
+      "source": "design_project_ios_frame_jsx",
+      "target": "project_ios_frame_ioskeyboard",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "design/project/ios-frame.jsx",
+      "source_location": "L235",
+      "weight": 1.0
+    },
+    {
+      "source": "design_project_design_canvas_jsx",
+      "target": "project_design_canvas_designcanvas",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "design/project/design-canvas.jsx",
+      "source_location": "L71",
+      "weight": 1.0
+    },
+    {
+      "source": "design_project_design_canvas_jsx",
+      "target": "project_design_canvas_dcviewport",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "design/project/design-canvas.jsx",
+      "source_location": "L182",
+      "weight": 1.0
+    },
+    {
+      "source": "design_project_design_canvas_jsx",
+      "target": "project_design_canvas_dcsection",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "design/project/design-canvas.jsx",
+      "source_location": "L333",
+      "weight": 1.0
+    },
+    {
+      "source": "design_project_design_canvas_jsx",
+      "target": "project_design_canvas_dcartboard",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "design/project/design-canvas.jsx",
+      "source_location": "L372",
+      "weight": 1.0
+    },
+    {
+      "source": "design_project_design_canvas_jsx",
+      "target": "project_design_canvas_dcartboardframe",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "design/project/design-canvas.jsx",
+      "source_location": "L374",
+      "weight": 1.0
+    },
+    {
+      "source": "design_project_design_canvas_jsx",
+      "target": "project_design_canvas_dceditable",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "design/project/design-canvas.jsx",
+      "source_location": "L464",
+      "weight": 1.0
+    },
+    {
+      "source": "design_project_design_canvas_jsx",
+      "target": "project_design_canvas_dcfocusoverlay",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "design/project/design-canvas.jsx",
+      "source_location": "L480",
+      "weight": 1.0
+    },
+    {
+      "source": "design_project_design_canvas_jsx",
+      "target": "project_design_canvas_dcpostit",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "design/project/design-canvas.jsx",
+      "source_location": "L607",
+      "weight": 1.0
+    },
+    {
+      "source": "app_src_androidtest_java_com_prime_browser_exampleinstrumentedtest_kt",
+      "target": "browser_exampleinstrumentedtest_exampleinstrumentedtest",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/androidTest/java/com/prime/browser/ExampleInstrumentedTest.kt",
+      "source_location": "L16",
+      "weight": 1.0
+    },
+    {
+      "source": "browser_exampleinstrumentedtest_exampleinstrumentedtest",
+      "target": "browser_exampleinstrumentedtest_exampleinstrumentedtest_useappcontext",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/androidTest/java/com/prime/browser/ExampleInstrumentedTest.kt",
+      "source_location": "L18",
+      "weight": 1.0
+    },
+    {
+      "source": "app_src_test_java_com_prime_browser_exampleunittest_kt",
+      "target": "browser_exampleunittest_exampleunittest",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/test/java/com/prime/browser/ExampleUnitTest.kt",
+      "source_location": "L12",
+      "weight": 1.0
+    },
+    {
+      "source": "browser_exampleunittest_exampleunittest",
+      "target": "browser_exampleunittest_exampleunittest_addition_iscorrect",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/test/java/com/prime/browser/ExampleUnitTest.kt",
+      "source_location": "L13",
+      "weight": 1.0
+    },
+    {
+      "source": "app_src_main_java_com_prime_browser_mainactivity_kt",
+      "target": "browser_mainactivity_mainactivity",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/java/com/prime/browser/MainActivity.kt",
+      "source_location": "L21",
+      "weight": 1.0
+    },
+    {
+      "source": "browser_mainactivity_mainactivity",
+      "target": "browser_mainactivity_mainactivity_oncreate",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/java/com/prime/browser/MainActivity.kt",
+      "source_location": "L22",
+      "weight": 1.0
+    },
+    {
+      "source": "app_src_main_java_com_prime_browser_mainactivity_kt",
+      "target": "browser_mainactivity_browsernavhost",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/java/com/prime/browser/MainActivity.kt",
+      "source_location": "L33",
+      "weight": 1.0
+    },
+    {
+      "source": "app_src_main_java_com_prime_browser_mainactivity_kt",
+      "target": "browser_mainactivity_placeholderscreen",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/java/com/prime/browser/MainActivity.kt",
+      "source_location": "L78",
+      "weight": 1.0
+    },
+    {
+      "source": "app_src_main_java_com_prime_browser_browserapplication_kt",
+      "target": "browser_browserapplication_browserapplication",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/java/com/prime/browser/BrowserApplication.kt",
+      "source_location": "L8",
+      "weight": 1.0
+    },
+    {
+      "source": "app_src_main_java_com_prime_browser_ui_theme_theme_kt",
+      "target": "theme_theme_browsertheme",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/java/com/prime/browser/ui/theme/Theme.kt",
+      "source_location": "L49",
+      "weight": 1.0
+    },
+    {
+      "source": "app_src_main_java_com_prime_browser_ui_theme_theme_kt",
+      "target": "theme_theme_incognitotheme",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/java/com/prime/browser/ui/theme/Theme.kt",
+      "source_location": "L70",
+      "weight": 1.0
+    },
+    {
+      "source": "app_src_main_java_com_prime_browser_navigation_screen_kt",
+      "target": "navigation_screen_screen",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/java/com/prime/browser/navigation/Screen.kt",
+      "source_location": "L3",
+      "weight": 1.0
+    },
+    {
+      "source": "app_src_main_java_com_prime_browser_navigation_screen_kt",
+      "target": "navigation_screen_browser",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/java/com/prime/browser/navigation/Screen.kt",
+      "source_location": "L4",
+      "weight": 1.0
+    },
+    {
+      "source": "app_src_main_java_com_prime_browser_navigation_screen_kt",
+      "target": "navigation_screen_tabswitcher",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/java/com/prime/browser/navigation/Screen.kt",
+      "source_location": "L5",
+      "weight": 1.0
+    },
+    {
+      "source": "app_src_main_java_com_prime_browser_navigation_screen_kt",
+      "target": "navigation_screen_omnibox",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/java/com/prime/browser/navigation/Screen.kt",
+      "source_location": "L6",
+      "weight": 1.0
+    },
+    {
+      "source": "navigation_screen_omnibox",
+      "target": "navigation_screen_omnibox_withurl",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/java/com/prime/browser/navigation/Screen.kt",
+      "source_location": "L7",
+      "weight": 1.0
+    },
+    {
+      "source": "app_src_main_java_com_prime_browser_navigation_screen_kt",
+      "target": "navigation_screen_history",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/java/com/prime/browser/navigation/Screen.kt",
+      "source_location": "L9",
+      "weight": 1.0
+    },
+    {
+      "source": "app_src_main_java_com_prime_browser_navigation_screen_kt",
+      "target": "navigation_screen_bookmarks",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/java/com/prime/browser/navigation/Screen.kt",
+      "source_location": "L10",
+      "weight": 1.0
+    },
+    {
+      "source": "app_src_main_java_com_prime_browser_navigation_screen_kt",
+      "target": "navigation_screen_downloads",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/java/com/prime/browser/navigation/Screen.kt",
+      "source_location": "L11",
+      "weight": 1.0
+    },
+    {
+      "source": "app_src_main_java_com_prime_browser_navigation_screen_kt",
+      "target": "navigation_screen_settings",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/java/com/prime/browser/navigation/Screen.kt",
+      "source_location": "L12",
+      "weight": 1.0
+    },
+    {
+      "source": "app_src_main_java_com_prime_browser_navigation_screen_kt",
+      "target": "navigation_screen_settingsprivacy",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/java/com/prime/browser/navigation/Screen.kt",
+      "source_location": "L13",
+      "weight": 1.0
+    },
+    {
+      "source": "app_src_main_java_com_prime_browser_navigation_screen_kt",
+      "target": "navigation_screen_settingssite",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/java/com/prime/browser/navigation/Screen.kt",
+      "source_location": "L14",
+      "weight": 1.0
+    },
+    {
+      "source": "app_src_main_java_com_prime_browser_browser_browserwebviewcomposable_kt",
+      "target": "browser_browserwebviewcomposable_browserwebviewcomposable",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/java/com/prime/browser/browser/BrowserWebViewComposable.kt",
+      "source_location": "L18",
+      "weight": 1.0
+    },
+    {
+      "source": "app_src_main_java_com_prime_browser_browser_browserwebviewcomposable_kt",
+      "target": "browser_browserwebviewcomposable_showsslerrordialog",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/java/com/prime/browser/browser/BrowserWebViewComposable.kt",
+      "source_location": "L72",
+      "weight": 1.0
+    },
+    {
+      "source": "app_src_main_java_com_prime_browser_browser_browserwebviewcomposable_kt",
+      "target": "browser_browserwebviewcomposable_sslerrordescription",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/java/com/prime/browser/browser/BrowserWebViewComposable.kt",
+      "source_location": "L87",
+      "weight": 1.0
+    },
+    {
+      "source": "app_src_main_java_com_prime_browser_browser_browserwebviewclient_kt",
+      "target": "browser_browserwebviewclient_browserwebviewclient",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/java/com/prime/browser/browser/BrowserWebViewClient.kt",
+      "source_location": "L12",
+      "weight": 1.0
+    },
+    {
+      "source": "browser_browserwebviewclient_browserwebviewclient",
+      "target": "browser_browserwebviewclient_browserwebviewclient_shouldinterceptrequest",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/java/com/prime/browser/browser/BrowserWebViewClient.kt",
+      "source_location": "L20",
+      "weight": 1.0
+    },
+    {
+      "source": "browser_browserwebviewclient_browserwebviewclient",
+      "target": "browser_browserwebviewclient_browserwebviewclient_onpagestarted",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/java/com/prime/browser/browser/BrowserWebViewClient.kt",
+      "source_location": "L31",
+      "weight": 1.0
+    },
+    {
+      "source": "browser_browserwebviewclient_browserwebviewclient",
+      "target": "browser_browserwebviewclient_browserwebviewclient_onpagefinished",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/java/com/prime/browser/browser/BrowserWebViewClient.kt",
+      "source_location": "L37",
+      "weight": 1.0
+    },
+    {
+      "source": "browser_browserwebviewclient_browserwebviewclient",
+      "target": "browser_browserwebviewclient_browserwebviewclient_onreceivedsslerror",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/java/com/prime/browser/browser/BrowserWebViewClient.kt",
+      "source_location": "L43",
+      "weight": 1.0
+    },
+    {
+      "source": "browser_browserwebviewclient_browserwebviewclient",
+      "target": "browser_browserwebviewclient_browserwebviewclient_isvideourl",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/java/com/prime/browser/browser/BrowserWebViewClient.kt",
+      "source_location": "L47",
+      "weight": 1.0
+    },
+    {
+      "source": "app_src_main_java_com_prime_browser_browser_browserwebchromeclient_kt",
+      "target": "browser_browserwebchromeclient_browserwebchromeclient",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/java/com/prime/browser/browser/BrowserWebChromeClient.kt",
+      "source_location": "L8",
+      "weight": 1.0
+    },
+    {
+      "source": "browser_browserwebchromeclient_browserwebchromeclient",
+      "target": "browser_browserwebchromeclient_browserwebchromeclient_onprogresschanged",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/java/com/prime/browser/browser/BrowserWebChromeClient.kt",
+      "source_location": "L14",
+      "weight": 1.0
+    },
+    {
+      "source": "browser_browserwebchromeclient_browserwebchromeclient",
+      "target": "browser_browserwebchromeclient_browserwebchromeclient_onreceivedtitle",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/java/com/prime/browser/browser/BrowserWebChromeClient.kt",
+      "source_location": "L19",
+      "weight": 1.0
+    },
+    {
+      "source": "browser_browserwebchromeclient_browserwebchromeclient",
+      "target": "browser_browserwebchromeclient_browserwebchromeclient_onreceivedicon",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/java/com/prime/browser/browser/BrowserWebChromeClient.kt",
+      "source_location": "L24",
+      "weight": 1.0
+    },
+    {
+      "source": "browser_browserwebchromeclient_browserwebchromeclient",
+      "target": "browser_browserwebchromeclient_browserwebchromeclient_onshowcustomview",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/java/com/prime/browser/browser/BrowserWebChromeClient.kt",
+      "source_location": "L30",
+      "weight": 1.0
+    },
+    {
+      "source": "browser_browserwebchromeclient_browserwebchromeclient",
+      "target": "browser_browserwebchromeclient_browserwebchromeclient_onhidecustomview",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/java/com/prime/browser/browser/BrowserWebChromeClient.kt",
+      "source_location": "L34",
+      "weight": 1.0
+    },
+    {
+      "source": "app_src_main_java_com_prime_browser_browser_browserwebview_kt",
+      "target": "browser_browserwebview_browserwebview",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/java/com/prime/browser/browser/BrowserWebView.kt",
+      "source_location": "L10",
+      "weight": 1.0
+    },
+    {
+      "source": "app_src_main_java_com_prime_browser_data_browserrepository_kt",
+      "target": "data_browserrepository_browserrepository",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/java/com/prime/browser/data/BrowserRepository.kt",
+      "source_location": "L7",
+      "weight": 1.0
+    },
+    {
+      "source": "data_browserrepository_browserrepository",
+      "target": "data_browserrepository_browserrepository_inserthistory",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/java/com/prime/browser/data/BrowserRepository.kt",
+      "source_location": "L11",
+      "weight": 1.0
+    },
+    {
+      "source": "data_browserrepository_browserrepository",
+      "target": "data_browserrepository_browserrepository_deletehistory",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/java/com/prime/browser/data/BrowserRepository.kt",
+      "source_location": "L13",
+      "weight": 1.0
+    },
+    {
+      "source": "data_browserrepository_browserrepository",
+      "target": "data_browserrepository_browserrepository_clearallhistory",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/java/com/prime/browser/data/BrowserRepository.kt",
+      "source_location": "L15",
+      "weight": 1.0
+    },
+    {
+      "source": "data_browserrepository_browserrepository",
+      "target": "data_browserrepository_browserrepository_searchhistory",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/java/com/prime/browser/data/BrowserRepository.kt",
+      "source_location": "L17",
+      "weight": 1.0
+    },
+    {
+      "source": "data_browserrepository_browserrepository",
+      "target": "data_browserrepository_browserrepository_observehistory",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/java/com/prime/browser/data/BrowserRepository.kt",
+      "source_location": "L20",
+      "weight": 1.0
+    },
+    {
+      "source": "data_browserrepository_browserrepository",
+      "target": "data_browserrepository_browserrepository_findhistorybyurl",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/java/com/prime/browser/data/BrowserRepository.kt",
+      "source_location": "L22",
+      "weight": 1.0
+    },
+    {
+      "source": "data_browserrepository_browserrepository",
+      "target": "data_browserrepository_browserrepository_insertbookmark",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/java/com/prime/browser/data/BrowserRepository.kt",
+      "source_location": "L27",
+      "weight": 1.0
+    },
+    {
+      "source": "data_browserrepository_browserrepository",
+      "target": "data_browserrepository_browserrepository_updatebookmark",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/java/com/prime/browser/data/BrowserRepository.kt",
+      "source_location": "L30",
+      "weight": 1.0
+    },
+    {
+      "source": "data_browserrepository_browserrepository",
+      "target": "data_browserrepository_browserrepository_deletebookmark",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/java/com/prime/browser/data/BrowserRepository.kt",
+      "source_location": "L32",
+      "weight": 1.0
+    },
+    {
+      "source": "data_browserrepository_browserrepository",
+      "target": "data_browserrepository_browserrepository_searchbookmarks",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/java/com/prime/browser/data/BrowserRepository.kt",
+      "source_location": "L34",
+      "weight": 1.0
+    },
+    {
+      "source": "data_browserrepository_browserrepository",
+      "target": "data_browserrepository_browserrepository_isbookmarked",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/java/com/prime/browser/data/BrowserRepository.kt",
+      "source_location": "L37",
+      "weight": 1.0
+    },
+    {
+      "source": "data_browserrepository_browserrepository",
+      "target": "data_browserrepository_browserrepository_observebookmarks",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/java/com/prime/browser/data/BrowserRepository.kt",
+      "source_location": "L39",
+      "weight": 1.0
+    },
+    {
+      "source": "data_browserrepository_browserrepository",
+      "target": "data_browserrepository_browserrepository_observebookmarksbyparent",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/java/com/prime/browser/data/BrowserRepository.kt",
+      "source_location": "L41",
+      "weight": 1.0
+    },
+    {
+      "source": "data_browserrepository_browserrepository",
+      "target": "data_browserrepository_browserrepository_findbookmarkbyurl",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/java/com/prime/browser/data/BrowserRepository.kt",
+      "source_location": "L44",
+      "weight": 1.0
+    },
+    {
+      "source": "app_src_main_java_com_prime_browser_data_browserdatabase_kt",
+      "target": "data_browserdatabase_browserdatabase",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/java/com/prime/browser/data/BrowserDatabase.kt",
+      "source_location": "L10",
+      "weight": 1.0
+    },
+    {
+      "source": "data_browserdatabase_browserdatabase",
+      "target": "data_browserdatabase_browserdatabase_historydao",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/java/com/prime/browser/data/BrowserDatabase.kt",
+      "source_location": "L16",
+      "weight": 1.0
+    },
+    {
+      "source": "data_browserdatabase_browserdatabase",
+      "target": "data_browserdatabase_browserdatabase_bookmarkdao",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/java/com/prime/browser/data/BrowserDatabase.kt",
+      "source_location": "L17",
+      "weight": 1.0
+    },
+    {
+      "source": "app_src_main_java_com_prime_browser_data_entity_bookmark_kt",
+      "target": "entity_bookmark_bookmark",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/java/com/prime/browser/data/entity/Bookmark.kt",
+      "source_location": "L6",
+      "weight": 1.0
+    },
+    {
+      "source": "app_src_main_java_com_prime_browser_data_entity_historyentry_kt",
+      "target": "entity_historyentry_historyentry",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/java/com/prime/browser/data/entity/HistoryEntry.kt",
+      "source_location": "L6",
+      "weight": 1.0
+    },
+    {
+      "source": "app_src_main_java_com_prime_browser_data_dao_bookmarkdao_kt",
+      "target": "dao_bookmarkdao_bookmarkdao",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/java/com/prime/browser/data/dao/BookmarkDao.kt",
+      "source_location": "L11",
+      "weight": 1.0
+    },
+    {
+      "source": "dao_bookmarkdao_bookmarkdao",
+      "target": "dao_bookmarkdao_bookmarkdao_insert",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/java/com/prime/browser/data/dao/BookmarkDao.kt",
+      "source_location": "L14",
+      "weight": 1.0
+    },
+    {
+      "source": "dao_bookmarkdao_bookmarkdao",
+      "target": "dao_bookmarkdao_bookmarkdao_update",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/java/com/prime/browser/data/dao/BookmarkDao.kt",
+      "source_location": "L17",
+      "weight": 1.0
+    },
+    {
+      "source": "dao_bookmarkdao_bookmarkdao",
+      "target": "dao_bookmarkdao_bookmarkdao_delete",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/java/com/prime/browser/data/dao/BookmarkDao.kt",
+      "source_location": "L20",
+      "weight": 1.0
+    },
+    {
+      "source": "dao_bookmarkdao_bookmarkdao",
+      "target": "dao_bookmarkdao_bookmarkdao_search",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/java/com/prime/browser/data/dao/BookmarkDao.kt",
+      "source_location": "L23",
+      "weight": 1.0
+    },
+    {
+      "source": "dao_bookmarkdao_bookmarkdao",
+      "target": "dao_bookmarkdao_bookmarkdao_isbookmarked",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/java/com/prime/browser/data/dao/BookmarkDao.kt",
+      "source_location": "L30",
+      "weight": 1.0
+    },
+    {
+      "source": "dao_bookmarkdao_bookmarkdao",
+      "target": "dao_bookmarkdao_bookmarkdao_observeall",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/java/com/prime/browser/data/dao/BookmarkDao.kt",
+      "source_location": "L33",
+      "weight": 1.0
+    },
+    {
+      "source": "dao_bookmarkdao_bookmarkdao",
+      "target": "dao_bookmarkdao_bookmarkdao_observebyparent",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/java/com/prime/browser/data/dao/BookmarkDao.kt",
+      "source_location": "L36",
+      "weight": 1.0
+    },
+    {
+      "source": "dao_bookmarkdao_bookmarkdao",
+      "target": "dao_bookmarkdao_bookmarkdao_findbyurl",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/java/com/prime/browser/data/dao/BookmarkDao.kt",
+      "source_location": "L39",
+      "weight": 1.0
+    },
+    {
+      "source": "app_src_main_java_com_prime_browser_data_dao_historydao_kt",
+      "target": "dao_historydao_historydao",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/java/com/prime/browser/data/dao/HistoryDao.kt",
+      "source_location": "L10",
+      "weight": 1.0
+    },
+    {
+      "source": "dao_historydao_historydao",
+      "target": "dao_historydao_historydao_insert",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/java/com/prime/browser/data/dao/HistoryDao.kt",
+      "source_location": "L13",
+      "weight": 1.0
+    },
+    {
+      "source": "dao_historydao_historydao",
+      "target": "dao_historydao_historydao_delete",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/java/com/prime/browser/data/dao/HistoryDao.kt",
+      "source_location": "L16",
+      "weight": 1.0
+    },
+    {
+      "source": "dao_historydao_historydao",
+      "target": "dao_historydao_historydao_clearall",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/java/com/prime/browser/data/dao/HistoryDao.kt",
+      "source_location": "L19",
+      "weight": 1.0
+    },
+    {
+      "source": "dao_historydao_historydao",
+      "target": "dao_historydao_historydao_search",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/java/com/prime/browser/data/dao/HistoryDao.kt",
+      "source_location": "L22",
+      "weight": 1.0
+    },
+    {
+      "source": "dao_historydao_historydao",
+      "target": "dao_historydao_historydao_observeall",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/java/com/prime/browser/data/dao/HistoryDao.kt",
+      "source_location": "L29",
+      "weight": 1.0
+    },
+    {
+      "source": "dao_historydao_historydao",
+      "target": "dao_historydao_historydao_findbyurl",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "app/src/main/java/com/prime/browser/data/dao/HistoryDao.kt",
+      "source_location": "L32",
+      "weight": 1.0
+    }
+  ],
+  "input_tokens": 0,
+  "output_tokens": 0
+}
