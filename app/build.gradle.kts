@@ -66,6 +66,9 @@ dependencies {
     // WebKit (WebSettingsCompat for FORCE_DARK, safe browsing)
     implementation(libs.androidx.webkit)
 
+    // SwipeRefreshLayout (pull-to-refresh over WebView)
+    implementation(libs.androidx.swiperefreshlayout)
+
     // Lifecycle Compose (LocalLifecycleOwner)
     implementation(libs.androidx.lifecycle.compose)
 

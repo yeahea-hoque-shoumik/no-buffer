@@ -8,11 +8,17 @@ import com.prime.nobuffer.BrowserApplication
 import com.prime.nobuffer.browser.BrowserWebView
 import com.prime.nobuffer.data.entity.HistoryEntry
 import com.prime.nobuffer.data.entity.TabEntity
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+
+const val TAB_CLOSE_UNDO_WINDOW_MS = 5000L
 
 class TabsViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -49,6 +55,36 @@ class TabsViewModel(application: Application) : AndroidViewModel(application) {
 
     fun closeTab(tabId: String) = tabManager.closeTab(tabId)
 
+    private val _pendingClose = MutableStateFlow<ClosedTab?>(null)
+    val pendingClose: StateFlow<ClosedTab?> = _pendingClose.asStateFlow()
+    private var pendingCloseJob: Job? = null
+
+    fun closeTabWithUndo(tabId: String) {
+        val closed = tabManager.removeTabForClose(tabId) ?: return
+        finalizePendingClose()
+        _pendingClose.value = closed
+        pendingCloseJob = viewModelScope.launch {
+            delay(TAB_CLOSE_UNDO_WINDOW_MS)
+            finalizePendingClose()
+        }
+    }
+
+    fun undoTabClose() {
+        val closed = _pendingClose.value ?: return
+        pendingCloseJob?.cancel()
+        pendingCloseJob = null
+        _pendingClose.value = null
+        tabManager.restoreClosedTab(closed)
+    }
+
+    private fun finalizePendingClose() {
+        val closed = _pendingClose.value ?: return
+        pendingCloseJob?.cancel()
+        pendingCloseJob = null
+        _pendingClose.value = null
+        tabManager.finalizeRemovedTab(closed)
+    }
+
     fun switchTab(index: Int) = tabManager.switchTab(index)
 
     fun attachWebView(tabId: String, webView: BrowserWebView) = tabManager.attachWebView(tabId, webView)
@@ -64,6 +100,11 @@ class TabsViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun captureSnapshot(tabId: String, bitmap: Bitmap) = tabManager.captureSnapshot(tabId, bitmap)
+
+    override fun onCleared() {
+        finalizePendingClose()
+        super.onCleared()
+    }
 
     fun updateTabInfo(tabId: String, url: String? = null, title: String? = null, favicon: Bitmap? = null) {
         tabManager.updateTabInfo(tabId, url, title, favicon)

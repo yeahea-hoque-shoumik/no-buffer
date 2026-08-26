@@ -39,6 +39,7 @@ fun BrowserMenuBottomSheet(
     onInstall: () -> Unit,
     onNewTab: () -> Unit,
     onNewPrivateTab: () -> Unit,
+    onAddToHomePage: () -> Unit,
     onHistory: () -> Unit,
     onDownloads: () -> Unit,
     onFindOnPage: () -> Unit,
@@ -105,6 +106,7 @@ fun BrowserMenuBottomSheet(
             val items = listOf(
                 MenuItem("New Tab", onNewTab),
                 MenuItem("New Private Tab", onNewPrivateTab),
+                MenuItem("Add to Home Page", onAddToHomePage),
                 MenuItem("History", onHistory),
                 MenuItem("Downloads", onDownloads),
                 MenuItem("Zoom: 100%", {}),

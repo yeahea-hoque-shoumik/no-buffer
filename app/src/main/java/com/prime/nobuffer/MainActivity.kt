@@ -14,6 +14,7 @@ import android.print.PrintAttributes
 import android.print.PrintManager
 import android.view.View
 import android.webkit.CookieManager
+import android.widget.Toast
 import android.webkit.GeolocationPermissions
 import android.webkit.PermissionRequest
 import android.webkit.ValueCallback
@@ -54,6 +55,7 @@ import androidx.webkit.WebSettingsCompat
 import androidx.webkit.WebViewFeature
 import com.prime.nobuffer.browser.BrowserWebView
 import com.prime.nobuffer.navigation.Screen
+import com.prime.nobuffer.newtab.QuickAccessViewModel
 import com.prime.nobuffer.settings.DarkModeOption
 import com.prime.nobuffer.settings.SettingsViewModel
 import com.prime.nobuffer.tabs.TabsViewModel
@@ -237,6 +239,7 @@ fun BrowserNavHost(
     val tabs by tabsViewModel.tabs.collectAsStateWithLifecycle()
     val activeTab by tabsViewModel.activeTabFlow.collectAsStateWithLifecycle()
     val settingsViewModel: SettingsViewModel = viewModel()
+    val quickAccessViewModel: QuickAccessViewModel = viewModel()
     val settings by settingsViewModel.settings.collectAsStateWithLifecycle()
     val context = LocalContext.current
     var menuVisible by remember { mutableStateOf(false) }
@@ -305,6 +308,11 @@ fun BrowserNavHost(
             },
             onNewPrivateTab = {
                 tabsViewModel.newTab("about:blank", isIncognito = true)
+                menuVisible = false
+            },
+            onAddToHomePage = {
+                activeTab?.let { quickAccessViewModel.addSite(it.url, it.title) }
+                Toast.makeText(context, "Added to home page", Toast.LENGTH_SHORT).show()
                 menuVisible = false
             },
             onHistory = {
@@ -378,6 +386,7 @@ fun BrowserNavHost(
             }
         }
         composable(Screen.TabSwitcher.route) {
+            val pendingClose by tabsViewModel.pendingClose.collectAsStateWithLifecycle()
             TabSwitcherScreen(
                 tabs = tabs,
                 activeTabId = activeTab?.id,
@@ -386,7 +395,7 @@ fun BrowserNavHost(
                     if (index >= 0) tabsViewModel.switchTab(index)
                     navController.popBackStack()
                 },
-                onCloseTab = { tab -> tabsViewModel.closeTab(tab.id) },
+                onCloseTab = { tab -> tabsViewModel.closeTabWithUndo(tab.id) },
                 onNewTab = {
                     tabsViewModel.newTab("about:blank")
                     navController.popBackStack()
@@ -395,7 +404,9 @@ fun BrowserNavHost(
                     tabsViewModel.newTab("about:blank", isIncognito = true)
                     navController.popBackStack()
                 },
-                onDone = { navController.popBackStack() }
+                onDone = { navController.popBackStack() },
+                pendingClosedTab = pendingClose?.tab,
+                onUndoClose = { tabsViewModel.undoTabClose() }
             )
         }
         composable(

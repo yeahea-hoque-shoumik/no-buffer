@@ -14,18 +14,23 @@ import android.webkit.URLUtil
 import android.webkit.ValueCallback
 import android.webkit.WebChromeClient
 import android.webkit.WebView
+import android.view.ViewGroup
 import android.widget.Toast
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 
 @Composable
 fun BrowserWebViewComposable(
@@ -45,14 +50,20 @@ fun BrowserWebViewComposable(
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
 
+    var isRefreshing by remember(existingWebView) { mutableStateOf(false) }
+
     val webView = remember(existingWebView) {
         (existingWebView ?: BrowserWebView(context)).apply {
             webViewClient = BrowserWebViewClient(
                 onPageStarted = onPageStarted,
-                onPageFinished = onPageFinished,
+                onPageFinished = { url, title ->
+                    isRefreshing = false
+                    onPageFinished(url, title)
+                },
                 onSslError = { handler, error ->
                     showSslErrorDialog(this, handler, error)
-                }
+                },
+                onReceivedError = { isRefreshing = false }
             )
             webChromeClient = BrowserWebChromeClient(
                 onProgressChanged = onProgressChanged,
@@ -89,11 +100,26 @@ fun BrowserWebViewComposable(
 
     key(webView) {
         AndroidView(
-            factory = { webView },
+            factory = {
+                SwipeRefreshLayout(context).apply {
+                    setColorSchemeColors(0xFF7B6EF5.toInt())
+                    setOnRefreshListener {
+                        isRefreshing = true
+                        webView.reload()
+                    }
+                    (webView.parent as? ViewGroup)?.removeView(webView)
+                    addView(
+                        webView,
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        ViewGroup.LayoutParams.MATCH_PARENT
+                    )
+                }
+            },
             modifier = modifier,
-            update = { wv ->
-                if (url.isNotBlank() && wv.url != url) {
-                    wv.loadUrl(url)
+            update = { layout ->
+                layout.isRefreshing = isRefreshing
+                if (url.isNotBlank() && webView.url != url) {
+                    webView.loadUrl(url)
                 }
             }
         )

@@ -13,7 +13,8 @@ class BrowserWebViewClient(
     private val onPageStarted: (url: String) -> Unit = {},
     private val onPageFinished: (url: String, title: String?) -> Unit = { _, _ -> },
     private val onProgressChanged: (progress: Int) -> Unit = {},
-    private val onSslError: (handler: SslErrorHandler, error: SslError) -> Unit = { handler, _ -> handler.cancel() }
+    private val onSslError: (handler: SslErrorHandler, error: SslError) -> Unit = { handler, _ -> handler.cancel() },
+    private val onReceivedError: () -> Unit = {}
 ) : WebViewClient() {
 
     // Layer 1: network-level URL blocking — blocks video by extension, MIME, and CDN patterns
@@ -42,6 +43,15 @@ class BrowserWebViewClient(
 
     override fun onReceivedSslError(view: WebView, handler: SslErrorHandler, error: SslError) {
         onSslError(handler, error)
+    }
+
+    override fun onReceivedError(
+        view: WebView,
+        request: WebResourceRequest,
+        error: android.webkit.WebResourceError
+    ) {
+        super.onReceivedError(view, request, error)
+        if (request.isForMainFrame) onReceivedError()
     }
 
     private fun isVideoUrl(url: String): Boolean {

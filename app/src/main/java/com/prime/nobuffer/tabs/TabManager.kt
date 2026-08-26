@@ -11,6 +11,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 
+data class ClosedTab(val tab: BrowserTab, val index: Int, val wasActive: Boolean)
+
 class TabManager(private val context: Context) {
 
     private val _tabs = MutableStateFlow<List<BrowserTab>>(emptyList())
@@ -75,6 +77,59 @@ class TabManager(private val context: Context) {
         }
 
         if (updatedTabs.isEmpty()) {
+            newTab("about:blank")
+        }
+    }
+
+    /** Removes a tab from the list without destroying its WebView or backfilling an empty list — used to support undo. */
+    fun removeTabForClose(tabId: String): ClosedTab? {
+        val currentTabs = _tabs.value
+        val index = currentTabs.indexOfFirst { it.id == tabId }
+        if (index == -1) return null
+
+        val closedTab = currentTabs[index]
+        val wasActive = index == _activeIndex.value
+        val updatedTabs = currentTabs.toMutableList().apply { removeAt(index) }
+        _tabs.value = updatedTabs
+
+        _activeIndex.value = when {
+            updatedTabs.isEmpty() -> -1
+            index < _activeIndex.value -> _activeIndex.value - 1
+            index == _activeIndex.value -> index.coerceAtMost(updatedTabs.lastIndex)
+            else -> _activeIndex.value
+        }
+
+        return ClosedTab(closedTab, index, wasActive)
+    }
+
+    /** Reinserts a tab previously removed via [removeTabForClose] at its original position. */
+    fun restoreClosedTab(closed: ClosedTab) {
+        val currentTabs = _tabs.value.toMutableList()
+        val insertIndex = closed.index.coerceIn(0, currentTabs.size)
+        currentTabs.add(insertIndex, closed.tab)
+        _tabs.value = currentTabs
+
+        _activeIndex.value = when {
+            closed.wasActive -> insertIndex
+            insertIndex <= _activeIndex.value -> _activeIndex.value + 1
+            else -> _activeIndex.value
+        }
+    }
+
+    /** Permanently disposes a tab removed via [removeTabForClose] once its undo window has elapsed. */
+    fun finalizeRemovedTab(closed: ClosedTab) {
+        closed.tab.webView?.destroy()
+
+        if (closed.tab.isIncognito && _tabs.value.none { it.isIncognito }) {
+            CookieManager.getInstance().apply {
+                removeSessionCookies(null)
+                flush()
+                setAcceptCookie(true)
+            }
+            WebStorage.getInstance().deleteAllData()
+        }
+
+        if (_tabs.value.isEmpty()) {
             newTab("about:blank")
         }
     }

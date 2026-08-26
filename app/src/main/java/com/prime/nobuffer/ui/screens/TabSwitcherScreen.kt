@@ -1,5 +1,10 @@
 package com.prime.nobuffer.ui.screens
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -15,7 +20,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.CircleShape
@@ -24,12 +28,14 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
@@ -59,14 +65,22 @@ fun TabSwitcherScreen(
     onNewTab: () -> Unit,
     onNewPrivateTab: () -> Unit = {},
     onDone: () -> Unit,
+    pendingClosedTab: BrowserTab? = null,
+    onUndoClose: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
-    val colors = Orion.colors
     val regularTabs = tabs.filter { !it.isIncognito }
     val incognitoTabs = tabs.filter { it.isIncognito }
 
+    var showIncognito by remember {
+        mutableStateOf(tabs.firstOrNull { it.id == activeTabId }?.isIncognito == true)
+    }
+    val colors = if (showIncognito) DarkCardColors else Orion.colors
+    val visibleTabs = if (showIncognito) incognitoTabs else regularTabs
+
+    Box(modifier = modifier.fillMaxSize()) {
     Column(
-        modifier = modifier
+        modifier = Modifier
             .fillMaxSize()
             .background(colors.bg)
     ) {
@@ -75,11 +89,37 @@ fun TabSwitcherScreen(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(start = 20.dp, end = 20.dp, top = 4.dp, bottom = 16.dp),
+                .padding(horizontal = 16.dp, vertical = 4.dp)
+                .clip(RoundedCornerShape(14.dp))
+                .background(colors.elevated)
+                .border(1.dp, colors.border, RoundedCornerShape(14.dp))
+                .padding(4.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            ModeChip(
+                label = "${regularTabs.size} Tabs",
+                selected = !showIncognito,
+                colors = colors,
+                modifier = Modifier.weight(1f),
+                onClick = { showIncognito = false }
+            )
+            ModeChip(
+                label = "🕶 Incognito (${incognitoTabs.size})",
+                selected = showIncognito,
+                colors = colors,
+                modifier = Modifier.weight(1f),
+                onClick = { showIncognito = true }
+            )
+        }
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 20.dp, end = 20.dp, top = 16.dp, bottom = 16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = "${regularTabs.size} Tabs",
+                text = if (showIncognito) "Incognito" else "Standard",
                 color = colors.text,
                 fontSize = 22.sp,
                 fontWeight = FontWeight.Bold,
@@ -90,50 +130,51 @@ fun TabSwitcherScreen(
                     .clip(RoundedCornerShape(20.dp))
                     .background(colors.elevated)
                     .border(1.dp, colors.border, RoundedCornerShape(20.dp))
-                    .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null, onClick = onNewTab)
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null,
+                        onClick = { if (showIncognito) onNewPrivateTab() else onNewTab() }
+                    )
                     .padding(horizontal = 16.dp, vertical = 7.dp)
             ) {
                 Text("+ New", color = colors.accent, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
             }
         }
 
-        LazyVerticalGrid(
-            columns = GridCells.Fixed(2),
-            modifier = Modifier
-                .weight(1f)
-                .padding(horizontal = 16.dp)
-        ) {
-            items(regularTabs, key = { it.id }) { tab ->
-                TabCard(
-                    tab = tab,
-                    isActive = tab.id == activeTabId,
-                    onClick = { onSelectTab(tab) },
-                    onClose = { onCloseTab(tab) },
-                    modifier = Modifier.padding(6.dp)
+        if (visibleTabs.isEmpty()) {
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth(),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = if (showIncognito) "No incognito tabs" else "No tabs",
+                    color = colors.textDim,
+                    fontSize = 14.sp
                 )
             }
-            item(span = { GridItemSpan(maxLineSpan) }) {
-                NewTabSlot(onClick = onNewTab, modifier = Modifier.padding(6.dp))
-            }
-
-            if (incognitoTabs.isNotEmpty()) {
-                item(span = { GridItemSpan(maxLineSpan) }) {
-                    Text(
-                        text = "PRIVATE",
-                        color = colors.textDim,
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Bold,
-                        letterSpacing = 0.8.sp,
-                        modifier = Modifier.padding(top = 12.dp, bottom = 8.dp, start = 6.dp)
-                    )
-                }
-                items(incognitoTabs, key = { it.id }) { tab ->
+        } else {
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(2),
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(horizontal = 16.dp)
+            ) {
+                items(visibleTabs, key = { it.id }) { tab ->
                     TabCard(
                         tab = tab,
                         isActive = tab.id == activeTabId,
                         onClick = { onSelectTab(tab) },
                         onClose = { onCloseTab(tab) },
-                        forceDark = true,
+                        forceDark = showIncognito,
+                        modifier = Modifier.padding(6.dp)
+                    )
+                }
+                item {
+                    NewTabSlot(
+                        forceDark = showIncognito,
+                        onClick = { if (showIncognito) onNewPrivateTab() else onNewTab() },
                         modifier = Modifier.padding(6.dp)
                     )
                 }
@@ -155,26 +196,54 @@ fun TabSwitcherScreen(
                 color = colors.accent,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.SemiBold,
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
                 modifier = Modifier
-                    .weight(1f)
+                    .fillMaxWidth()
                     .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null, onClick = onDone)
-            )
-            Text("⊞", color = colors.textMid, fontSize = 16.sp)
-            Box(modifier = Modifier.size(24.dp))
-            Text(
-                text = "Private",
-                color = colors.textMid,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Medium,
-                modifier = Modifier.clickable(
-                    interactionSource = remember { MutableInteractionSource() },
-                    indication = null,
-                    onClick = onNewPrivateTab
-                )
             )
         }
 
         HomeIndicator()
+    }
+
+        AnimatedVisibility(
+            visible = pendingClosedTab != null,
+            enter = fadeIn() + slideInVertically(initialOffsetY = { it / 2 }),
+            exit = fadeOut() + slideOutVertically(targetOffsetY = { it / 2 }),
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 96.dp, start = 16.dp, end = 16.dp)
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(colors.elevated)
+                    .border(1.dp, colors.border, RoundedCornerShape(16.dp))
+                    .padding(horizontal = 18.dp, vertical = 14.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Closed ${pendingClosedTab?.let { hostOf(it.url) } ?: "tab"}",
+                    color = colors.text,
+                    fontSize = 14.sp,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f)
+                )
+                Text(
+                    text = "Undo",
+                    color = colors.accent,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null,
+                        onClick = onUndoClose
+                    )
+                )
+            }
+        }
     }
 }
 
@@ -287,8 +356,39 @@ private fun TabCard(
 }
 
 @Composable
-private fun NewTabSlot(onClick: () -> Unit, modifier: Modifier = Modifier) {
-    val colors = Orion.colors
+private fun ModeChip(
+    label: String,
+    selected: Boolean,
+    colors: com.prime.nobuffer.ui.theme.OrionColors,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Box(
+        modifier = modifier
+            .clip(RoundedCornerShape(11.dp))
+            .background(if (selected) colors.surface else Color.Transparent)
+            .then(
+                if (selected) Modifier.border(1.dp, colors.border, RoundedCornerShape(11.dp))
+                else Modifier
+            )
+            .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null, onClick = onClick)
+            .padding(vertical = 9.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = label,
+            color = if (selected) colors.text else colors.textMid,
+            fontSize = 13.sp,
+            fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
+    }
+}
+
+@Composable
+private fun NewTabSlot(onClick: () -> Unit, forceDark: Boolean = false, modifier: Modifier = Modifier) {
+    val colors = if (forceDark) DarkCardColors else Orion.colors
     Box(
         modifier = modifier
             .height(168.dp)
