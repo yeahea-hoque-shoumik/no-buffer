@@ -1,6 +1,6 @@
-# PHASES.md — Browser App Development Checklist
+# PHASES.md — NoBuffer App Development Checklist
 
-Chrome UI/UX Android browser built in Kotlin + Jetpack Compose.
+Chrome UI/UX Android browser (**NoBuffer**, `com.prime.nobuffer`) built in Kotlin + Jetpack Compose.
 Cross-reference `PLAN.md` for full design specs per screen.
 
 > All UI is Compose. Translate any Views/XML references in PLAN.md to Compose equivalents.
@@ -22,6 +22,7 @@ Cross-reference `PLAN.md` for full design specs per screen.
 - [x] Populate `ui/theme/Type.kt` with Chrome typography scale (Roboto / Google Sans)
 - [x] Add `INTERNET` and `DOWNLOAD_WITHOUT_NOTIFICATION` permissions to `AndroidManifest.xml`
 - [x] Set up `NavHost` in `MainActivity` with a sealed `Screen` route class covering all screens
+- [x] App rebranded to **NoBuffer** (`com.prime.nobuffer`) — package, display name, and adaptive launcher icon (`drawable/nobuffer_icon.png` as `ic_launcher_foreground`, wrapped in an 18dp `<inset>` so the mask doesn't crop/zoom the artwork; plain white `ic_launcher_background`)
 
 ---
 
@@ -36,7 +37,7 @@ Cross-reference `PLAN.md` for full design specs per screen.
   - [x] Layer 3: `onShowCustomView` — call `callback.onCustomViewHidden()` immediately
   - [x] Wire `onProgressChanged`, `onReceivedTitle`, `onReceivedIcon` callbacks
 - [x] Wrap `BrowserWebView` in an `AndroidView` composable (`BrowserWebViewComposable`)
-- [x] Apply security hardening: `allowFileAccess = false`, `allowContentAccess = false`, `WebView.startSafeBrowsing()`
+- [x] Apply security hardening: `allowFileAccess = true`, `allowContentAccess = true` (local `file://`/`content://` resource loading — safe since Layer 1 `shouldInterceptRequest` and the Layer 2 JS strip are scheme-agnostic and still block video regardless of origin; `allowFileAccessFromFileURLs`/`allowUniversalAccessFromFileURLs` left at their default `false`), `WebView.startSafeBrowsing()`
 - [x] Apply `WebSettingsCompat.FORCE_DARK_AUTO` for system dark-mode support
 
 ---
@@ -57,6 +58,7 @@ Cross-reference `PLAN.md` for full design specs per screen.
 - [x] Create `TabManager` — manages list of `BrowserTab`, `activeIndex`, `newTab()`, `closeTab()`, `captureSnapshot()`
 - [x] Create `TabCountBadge` composable — custom Canvas drawing of rounded-square with count number (mirrors Chrome badge)
 - [x] Expose tab list and active tab as `StateFlow` from a `TabsViewModel`
+- [x] Tab persistence across app restart: `TabEntity`/`TabDao` (Room `tabs` table, `BrowserDatabase` v2) store `id`/`url`/`title`/`position`/`isActive` for non-incognito tabs; `TabsViewModel.init` restores them via `TabManager.restoreTabs()` on launch (falling back to a blank tab if nothing was saved) and `persistTabs()` writes them back on `ON_PAUSE`; `BrowserTab.webView` is nullable so a restored tab is metadata-only until switched to — `BrowserScreen`'s `onWebViewReady` → `TabsViewModel.attachWebView()` only creates/loads the real `BrowserWebView` when that tab is actually rendered
 
 ---
 
@@ -144,6 +146,7 @@ Cross-reference `PLAN.md` for full design specs per screen.
 - [x] Debounced input (150ms) triggers DB search (bookmarks + history) + prepend search suggestion row
 - [x] `IME_ACTION_GO` navigates; row tap navigates
 - [x] `OmniboxViewModel` — `suggestions: StateFlow<List<OmniboxSuggestion>>` (type: recent/bookmark/search)
+- [x] Long-URL editing fixed: migrated the URL field from the classic `BasicTextField(value: TextFieldValue, ...)` overload to the `TextFieldState`-based overload (Compose Foundation 1.11.3) with `lineLimits = TextFieldLineLimits.SingleLine` — its built-in `ScrollState` handles horizontal scroll-to-cursor internally, so the whole URL (and the cursor) is reachable however long the string is; an earlier fix wrapping the field in an external `Modifier.horizontalScroll` container was reverted because its drag gesture conflicted with the field's own selection-drag gesture and broke multi-character cursor movement
 
 ---
 
@@ -282,6 +285,7 @@ Cross-reference `PLAN.md` for full design specs per screen.
 - [x] **Privacy & Security sub-screen**: Cookies (always-on, informational), third-party cookie block, DNT, Safe Browsing, search suggestions (search suggestions flag persisted but not yet consumed by Omnibox — future wiring)
 - [x] **Site Settings sub-screen**: Location / Mic / Camera / Notifications / Pop-ups / JavaScript toggles (persisted; real permission-prompt enforcement lands in Phase 15's `onPermissionRequest` wiring) / Media (Video) — greyed, always blocked, matches the 3-layer video block
 - [x] Persist all settings via `DataStore<Preferences>` (`SettingsRepository`)
+- [x] **Passwords section** — no in-app password vault; integrates with Android's system Autofill Framework instead: "Autofill Passwords" toggle (`autofillEnabled`, default on) drives `webView.importantForAutofill` (`IMPORTANT_FOR_AUTOFILL_YES`/`NO`) per tab in `MainActivity`; "Password Manager" row shows the active system autofill service (`AutofillManager`, resolved to its app label) and launches `Settings.ACTION_REQUEST_SET_AUTOFILL_SERVICE` so the user can pick/switch provider (Bitwarden, Google Password Manager, etc.) — label refreshes on `ON_RESUME` via a `LifecycleEventObserver`
 
 ---
 

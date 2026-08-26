@@ -36,12 +36,21 @@ app/src/main/java/com/prime/nobuffer/
 ├── data/                        # Phase 3 — Room data layer
 │   ├── entity/
 │   │   ├── HistoryEntry.kt      # Room entity: url, title, faviconUrl, visitedAt
-│   │   └── Bookmark.kt          # Room entity: url, title, faviconUrl, parentId, isFolder, sortOrder
+│   │   ├── Bookmark.kt          # Room entity: url, title, faviconUrl, parentId, isFolder, sortOrder
+│   │   └── TabEntity.kt         # Room entity: id, url, title, position, isActive (tab persistence)
 │   ├── dao/
 │   │   ├── HistoryDao.kt        # insert, delete, clearAll, search, findByUrl, observeAll (Flow)
-│   │   └── BookmarkDao.kt       # insert, update, delete, search, isBookmarked, observeAll/ByParent, findByUrl
-│   ├── BrowserDatabase.kt       # RoomDatabase with HistoryDao + BookmarkDao; version 1
-│   └── BrowserRepository.kt     # Coroutine-friendly facade over both DAOs
+│   │   ├── BookmarkDao.kt       # insert, update, delete, search, isBookmarked, observeAll/ByParent, findByUrl
+│   │   └── TabDao.kt            # getAll, insertAll, clearAll
+│   ├── BrowserDatabase.kt       # RoomDatabase with History/Bookmark/Tab DAOs; version 2
+│   └── BrowserRepository.kt     # Coroutine-friendly facade over all three DAOs
+├── tabs/                        # Phase 4 — tab management + persistence
+│   ├── BrowserTab.kt            # id, webView (nullable — null until switched to), url, title, favicon, isIncognito
+│   ├── TabManager.kt            # newTab/closeTab/restoreTabs/attachWebView, activeIndex
+│   └── TabsViewModel.kt         # StateFlow<List<BrowserTab>>; loads persisted tabs on init, persistTabs() on pause
+├── settings/                    # Phase 13 — DataStore preferences
+│   ├── SettingsRepository.kt    # BrowserSettings data class + DataStore<Preferences> keys/getters/setters
+│   └── SettingsViewModel.kt     # StateFlow<BrowserSettings> + setter passthroughs
 └── ui/theme/
     ├── Color.kt                 # Chrome palette tokens (light / dark / incognito)
     ├── Theme.kt                 # BrowserTheme + IncognitoTheme
@@ -49,11 +58,11 @@ app/src/main/java/com/prime/nobuffer/
 ```
 
 **Layers added by phase (see PHASES.md):**
-- Phase 2 → `browser/` (WebView engine, 3-layer video blocking)
+- Phase 2 ✅ → `browser/` (WebView engine, 3-layer video blocking)
 - Phase 3 ✅ → `data/` (Room entities, DAOs, Repository, BrowserDatabase); `BrowserApplication` singleton
-- Phase 4 → `tabs/` (TabManager, TabsViewModel, TabCountBadge composable)
-- Phase 5–9 → screen composables wired into NavHost
-- Phase 13 → `settings/` (DataStore preferences)
+- Phase 4 ✅ → `tabs/` (TabManager, TabsViewModel, TabCountBadge composable), incl. Room-backed tab persistence across app restart
+- Phase 5–9 ✅ → screen composables wired into NavHost
+- Phase 13 ✅ → `settings/` (DataStore preferences), incl. system Autofill Framework integration (no in-app password vault)
 
 **State management:** `ViewModel` + `StateFlow` per screen; no global shared mutable state.
 
@@ -66,6 +75,8 @@ app/src/main/java/com/prime/nobuffer/
 - **Min SDK 33**, Target SDK 36
 - **KSP only** — Room annotation processing via `ksp(libs.androidx.room.compiler)`, no KAPT; `android.disallowKotlinSourceSets=false` required in `gradle.properties` for AGP 9.x + KSP 2.x compatibility
 - **No dynamic Material You color** — `BrowserTheme` always uses Chrome's fixed palette; `IncognitoTheme` uses `#1A1A1A` surface
+- **`allowFileAccess`/`allowContentAccess` are `true`** (`BrowserWebView.kt`) — local `file://`/`content://` loading enabled; `allowFileAccessFromFileURLs`/`allowUniversalAccessFromFileURLs` must stay `false` (default) — that pairing is the actual sandbox-escape risk, not the two flags above
+- **No in-app password vault** — credential storage/autofill is delegated entirely to Android's system Autofill Framework (`AutofillManager`, `Settings.ACTION_REQUEST_SET_AUTOFILL_SERVICE`); the app only toggles `View.importantForAutofill` per tab, it never stores credentials itself
 
 ## Dependency Versions
 
