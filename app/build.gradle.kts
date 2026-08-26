@@ -5,7 +5,7 @@ plugins {
 }
 
 android {
-    namespace = "com.prime.browser"
+    namespace = "com.prime.nobuffer"
     compileSdk {
         version = release(36) {
             minorApiLevel = 1
@@ -13,7 +13,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.prime.browser"
+        applicationId = "com.prime.nobuffer"
         minSdk = 33
         targetSdk = 36
         versionCode = 1

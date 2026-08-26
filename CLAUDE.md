@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-Custom Android browser app (`com.prime.browser`) — Chrome UI/UX clone with 3-layer video blocking. Built in Kotlin + Jetpack Compose. See `PLAN.md` for the full design spec (colors, dimensions, interactions per screen) and `PHASES.md` for the phased implementation checklist.
+Custom Android browser app, **NoBuffer** (`com.prime.nobuffer`) — Chrome UI/UX clone with 3-layer video blocking. Built in Kotlin + Jetpack Compose. See `PLAN.md` for the full design spec (colors, dimensions, interactions per screen) and `PHASES.md` for the phased implementation checklist.
 
 > **Important:** `PLAN.md` was written for a Views/XML architecture. The project uses **Jetpack Compose** exclusively — `LazyColumn` not `RecyclerView`, `NavHost` not Activities per screen, `ModalBottomSheet` not `BottomSheetDialogFragment`, `AndroidView` wrapping `WebView`.
 
@@ -23,7 +23,7 @@ Custom Android browser app (`com.prime.browser`) — Chrome UI/UX clone with 3-l
 Single-activity Compose app. Entry point: `MainActivity` → `BrowserNavHost` (`NavHost`).
 
 ```
-app/src/main/java/com/prime/browser/
+app/src/main/java/com/prime/nobuffer/
 ├── BrowserApplication.kt        # Application subclass; lazy database + repository singletons
 ├── MainActivity.kt              # NavHost host; BrowserNavHost composable
 ├── navigation/

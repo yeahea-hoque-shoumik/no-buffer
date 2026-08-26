@@ -22,6 +22,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "Browser"
+rootProject.name = "NoBuffer"
 include(":app")
  
