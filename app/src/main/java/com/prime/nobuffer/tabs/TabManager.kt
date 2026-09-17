@@ -149,9 +149,15 @@ class TabManager(private val context: Context) {
             tab.copy(
                 url = url ?: tab.url,
                 title = title ?: tab.title,
-                favicon = favicon ?: tab.favicon
+                favicon = favicon ?: tab.favicon,
+                // A URL change means a new page load — reset the per-page block counter.
+                blockedCount = if (url != null && url != tab.url) 0 else tab.blockedCount
             )
         }
+    }
+
+    fun incrementBlockedCount(tabId: String) {
+        updateTab(tabId) { it.copy(blockedCount = it.blockedCount + 1) }
     }
 
     private fun updateTab(tabId: String, transform: (BrowserTab) -> BrowserTab) {

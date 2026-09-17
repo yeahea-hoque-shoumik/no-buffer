@@ -27,6 +27,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import com.prime.nobuffer.browser.BrowserWebView
 import com.prime.nobuffer.browser.BrowserWebViewComposable
+import com.prime.nobuffer.shields.WebShieldsContext
+import com.prime.nobuffer.ui.components.ElementPickerBanner
 import com.prime.nobuffer.ui.components.FindInPageBar
 import com.prime.nobuffer.ui.components.HomeIndicator
 import com.prime.nobuffer.ui.components.PillBar
@@ -45,13 +47,20 @@ fun BrowserScreen(
     isIncognito: Boolean = false,
     webView: BrowserWebView? = null,
     findInPageSignal: Int = 0,
+    blockedCount: Int = 0,
+    shields: WebShieldsContext = WebShieldsContext.disabled(),
+    elementPickerActive: Boolean = false,
     onUrlChanged: (String) -> Unit = {},
     onTitleChanged: (String) -> Unit = {},
     onOpenOmnibox: () -> Unit = {},
     onOpenTabSwitcher: () -> Unit = {},
     onOpenMenu: () -> Unit = {},
+    onOpenShields: () -> Unit = {},
     onExhausted: () -> Unit = {},
     onWebViewReady: (BrowserWebView) -> Unit = {},
+    onRequestBlocked: () -> Unit = {},
+    onElementPicked: (selector: String, webView: BrowserWebView) -> Unit = { _, _ -> },
+    onCancelElementPicker: () -> Unit = {},
     onShowFileChooser: (ValueCallback<Array<Uri>>, WebChromeClient.FileChooserParams) -> Boolean = { _, _ -> false },
     onPermissionRequested: (PermissionRequest) -> Unit = { it.deny() },
     onGeolocationPermissionRequested: (String, GeolocationPermissions.Callback) -> Unit = { _, callback -> callback.invoke(null, false, false) },
@@ -65,6 +74,15 @@ fun BrowserScreen(
     var canGoBack by remember { mutableStateOf(false) }
     var findInPageVisible by remember { mutableStateOf(false) }
     var findQuery by remember { mutableStateOf("") }
+
+    LaunchedEffect(elementPickerActive, webViewRef) {
+        val wv = webViewRef ?: return@LaunchedEffect
+        if (elementPickerActive) {
+            wv.startElementPicker { selector -> onElementPicked(selector, wv) }
+        } else {
+            wv.stopElementPicker()
+        }
+    }
 
     val isHome = currentUrl.isBlank() || currentUrl == "about:blank" || currentUrl == "about:newtab"
 
@@ -86,6 +104,9 @@ fun BrowserScreen(
     BackHandler(enabled = !findInPageVisible && isHome) {
         onExhausted()
     }
+    BackHandler(enabled = elementPickerActive) {
+        onCancelElementPicker()
+    }
 
     Column(
         modifier = modifier
@@ -97,10 +118,12 @@ fun BrowserScreen(
             url = currentUrl,
             showBack = !isHome && canGoBack,
             tabCount = tabCount,
+            blockedCount = blockedCount,
             onBackClick = { webViewRef?.goBack() },
             onFieldClick = onOpenOmnibox,
             onTabsClick = onOpenTabSwitcher,
-            onMenuClick = onOpenMenu
+            onMenuClick = onOpenMenu,
+            onShieldsClick = onOpenShields
         )
 
         if (progress in 1..99) {
@@ -121,6 +144,8 @@ fun BrowserScreen(
                 url = startUrl,
                 modifier = Modifier.fillMaxSize(),
                 existingWebView = webView,
+                shields = shields,
+                onRequestBlocked = onRequestBlocked,
                 onWebViewReady = { webViewRef = it; onWebViewReady(it) },
                 onProgressChanged = { progress = it },
                 onPageStarted = { url ->
@@ -146,6 +171,10 @@ fun BrowserScreen(
                 } else {
                     NewTabContent(onNavigate = onUrlChanged, modifier = Modifier.fillMaxSize())
                 }
+            }
+
+            if (elementPickerActive) {
+                ElementPickerBanner(onCancel = onCancelElementPicker, modifier = Modifier.fillMaxWidth())
             }
 
             if (findInPageVisible) {

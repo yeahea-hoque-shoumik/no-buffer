@@ -43,6 +43,7 @@ fun BrowserMenuBottomSheet(
     onHistory: () -> Unit,
     onDownloads: () -> Unit,
     onFindOnPage: () -> Unit,
+    onBlockElement: () -> Unit,
     onSettings: () -> Unit
 ) {
     val colors = Orion.colors
@@ -111,6 +112,7 @@ fun BrowserMenuBottomSheet(
                 MenuItem("Downloads", onDownloads),
                 MenuItem("Zoom: 100%", {}),
                 MenuItem("Find on Page", onFindOnPage),
+                MenuItem("Block Element", onBlockElement),
                 MenuItem("Settings", onSettings)
             )
 

@@ -13,6 +13,9 @@ private val Context.dataStore by preferencesDataStore(name = "browser_settings")
 
 enum class DarkModeOption { SYSTEM, LIGHT, DARK }
 
+/** Global shield strength (Phase 20) — per-site [com.prime.nobuffer.data.entity.SiteShieldOverride] wins when set. */
+enum class ShieldsMode { STANDARD, AGGRESSIVE, DISABLED }
+
 data class BrowserSettings(
     val searchEngine: String = "Google",
     val homepageUrl: String = "",
@@ -31,7 +34,11 @@ data class BrowserSettings(
     val cameraPermission: Boolean = false,
     val notificationsPermission: Boolean = false,
     val popupsBlocked: Boolean = true,
-    val autofillEnabled: Boolean = true
+    val autofillEnabled: Boolean = true,
+    val antiFingerprintingEnabled: Boolean = true,
+    val shieldsMode: ShieldsMode = ShieldsMode.STANDARD,
+    /** -1 means "ask every time" (no persisted grant is written). */
+    val permissionGrantTtlHours: Int = 24
 )
 
 class SettingsRepository(private val context: Context) {
@@ -55,6 +62,9 @@ class SettingsRepository(private val context: Context) {
         val NOTIFICATIONS_PERM = booleanPreferencesKey("notifications_permission")
         val POPUPS_BLOCKED = booleanPreferencesKey("popups_blocked")
         val AUTOFILL_ENABLED = booleanPreferencesKey("autofill_enabled")
+        val ANTI_FINGERPRINTING = booleanPreferencesKey("anti_fingerprinting")
+        val SHIELDS_MODE = stringPreferencesKey("shields_mode")
+        val PERMISSION_GRANT_TTL_HOURS = intPreferencesKey("permission_grant_ttl_hours")
     }
 
     val settings: Flow<BrowserSettings> = context.dataStore.data.map { prefs ->
@@ -76,7 +86,10 @@ class SettingsRepository(private val context: Context) {
             cameraPermission = prefs[Keys.CAMERA_PERM] ?: false,
             notificationsPermission = prefs[Keys.NOTIFICATIONS_PERM] ?: false,
             popupsBlocked = prefs[Keys.POPUPS_BLOCKED] ?: true,
-            autofillEnabled = prefs[Keys.AUTOFILL_ENABLED] ?: true
+            autofillEnabled = prefs[Keys.AUTOFILL_ENABLED] ?: true,
+            antiFingerprintingEnabled = prefs[Keys.ANTI_FINGERPRINTING] ?: true,
+            shieldsMode = prefs[Keys.SHIELDS_MODE]?.let { runCatching { ShieldsMode.valueOf(it) }.getOrNull() } ?: ShieldsMode.STANDARD,
+            permissionGrantTtlHours = prefs[Keys.PERMISSION_GRANT_TTL_HOURS] ?: 24
         )
     }
 
@@ -98,4 +111,7 @@ class SettingsRepository(private val context: Context) {
     suspend fun setNotificationsPermission(value: Boolean) = context.dataStore.edit { it[Keys.NOTIFICATIONS_PERM] = value }
     suspend fun setPopupsBlocked(value: Boolean) = context.dataStore.edit { it[Keys.POPUPS_BLOCKED] = value }
     suspend fun setAutofillEnabled(value: Boolean) = context.dataStore.edit { it[Keys.AUTOFILL_ENABLED] = value }
+    suspend fun setAntiFingerprintingEnabled(value: Boolean) = context.dataStore.edit { it[Keys.ANTI_FINGERPRINTING] = value }
+    suspend fun setShieldsMode(value: ShieldsMode) = context.dataStore.edit { it[Keys.SHIELDS_MODE] = value.name }
+    suspend fun setPermissionGrantTtlHours(value: Int) = context.dataStore.edit { it[Keys.PERMISSION_GRANT_TTL_HOURS] = value }
 }

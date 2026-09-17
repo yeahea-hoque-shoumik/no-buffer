@@ -1,7 +1,12 @@
 package com.prime.nobuffer.data
 
 import com.prime.nobuffer.data.entity.Bookmark
+import com.prime.nobuffer.data.entity.CustomFilterRule
 import com.prime.nobuffer.data.entity.HistoryEntry
+import com.prime.nobuffer.data.entity.PermissionType
+import com.prime.nobuffer.data.entity.SiteCosmeticRule
+import com.prime.nobuffer.data.entity.SitePermissionGrant
+import com.prime.nobuffer.data.entity.SiteShieldOverride
 import com.prime.nobuffer.data.entity.TabEntity
 import kotlinx.coroutines.flow.Flow
 
@@ -53,4 +58,49 @@ class BrowserRepository(private val db: BrowserDatabase) {
         db.tabDao().clearAll()
         db.tabDao().insertAll(tabs)
     }
+
+    // --- Shields (Phase 17/20) ---
+
+    suspend fun upsertSiteShieldOverride(override: SiteShieldOverride) =
+        db.siteShieldOverrideDao().upsert(override)
+
+    suspend fun findSiteShieldOverride(host: String): SiteShieldOverride? =
+        db.siteShieldOverrideDao().findByHost(host)
+
+    suspend fun deleteSiteShieldOverride(host: String) = db.siteShieldOverrideDao().delete(host)
+
+    fun observeSiteShieldOverrides(): Flow<List<SiteShieldOverride>> =
+        db.siteShieldOverrideDao().observeAll()
+
+    suspend fun addSiteCosmeticRule(host: String, selector: String) =
+        db.siteCosmeticRuleDao().insert(SiteCosmeticRule(host = host, selector = selector))
+
+    fun observeSiteCosmeticRules(): Flow<List<SiteCosmeticRule>> =
+        db.siteCosmeticRuleDao().observeAll()
+
+    suspend fun importCustomFilterRules(rules: List<CustomFilterRule>) {
+        db.customFilterRuleDao().insertAll(rules)
+    }
+
+    suspend fun clearCustomFilterRules() = db.customFilterRuleDao().clearAll()
+
+    suspend fun customFilterRuleCount(): Int = db.customFilterRuleDao().count()
+
+    fun observeCustomFilterRules(): Flow<List<CustomFilterRule>> =
+        db.customFilterRuleDao().observeAll()
+
+    // --- Permission grants (Phase 21) ---
+
+    suspend fun findActivePermissionGrant(host: String, type: PermissionType): SitePermissionGrant? =
+        db.sitePermissionGrantDao().findActive(host, type, System.currentTimeMillis())
+
+    suspend fun grantSitePermission(host: String, type: PermissionType, ttlMillis: Long) {
+        val now = System.currentTimeMillis()
+        db.sitePermissionGrantDao().upsert(
+            SitePermissionGrant(host = host, permissionType = type, grantedAt = now, expiresAt = now + ttlMillis)
+        )
+    }
+
+    suspend fun purgeExpiredPermissionGrants() =
+        db.sitePermissionGrantDao().deleteExpired(System.currentTimeMillis())
 }

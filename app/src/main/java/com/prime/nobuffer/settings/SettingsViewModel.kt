@@ -33,6 +33,9 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     fun setNotificationsPermission(value: Boolean) = launch { repository.setNotificationsPermission(value) }
     fun setPopupsBlocked(value: Boolean) = launch { repository.setPopupsBlocked(value) }
     fun setAutofillEnabled(value: Boolean) = launch { repository.setAutofillEnabled(value) }
+    fun setAntiFingerprintingEnabled(value: Boolean) = launch { repository.setAntiFingerprintingEnabled(value) }
+    fun setShieldsMode(value: ShieldsMode) = launch { repository.setShieldsMode(value) }
+    fun setPermissionGrantTtlHours(value: Int) = launch { repository.setPermissionGrantTtlHours(value) }
 
     private fun launch(block: suspend () -> Unit) {
         viewModelScope.launch { block() }

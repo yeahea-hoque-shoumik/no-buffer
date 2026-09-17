@@ -35,6 +35,7 @@ import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -44,6 +45,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -54,10 +56,12 @@ import androidx.navigation.navArgument
 import androidx.webkit.WebSettingsCompat
 import androidx.webkit.WebViewFeature
 import com.prime.nobuffer.browser.BrowserWebView
+import com.prime.nobuffer.data.entity.PermissionType
 import com.prime.nobuffer.navigation.Screen
 import com.prime.nobuffer.newtab.QuickAccessViewModel
 import com.prime.nobuffer.settings.DarkModeOption
 import com.prime.nobuffer.settings.SettingsViewModel
+import com.prime.nobuffer.shields.WebShieldsContext
 import com.prime.nobuffer.tabs.TabsViewModel
 import com.prime.nobuffer.ui.screens.BookmarksScreen
 import com.prime.nobuffer.ui.screens.BrowserMenuBottomSheet
@@ -68,9 +72,11 @@ import com.prime.nobuffer.ui.screens.OmniboxScreen
 import com.prime.nobuffer.ui.screens.SettingsPrivacyScreen
 import com.prime.nobuffer.ui.screens.SettingsScreen
 import com.prime.nobuffer.ui.screens.SettingsSiteScreen
+import com.prime.nobuffer.ui.screens.ShieldsBottomSheet
 import com.prime.nobuffer.ui.screens.TabSwitcherScreen
 import com.prime.nobuffer.ui.theme.BrowserTheme
 import com.prime.nobuffer.ui.theme.IncognitoTheme
+import kotlinx.coroutines.launch
 import java.net.URLDecoder
 import java.net.URLEncoder
 
@@ -78,8 +84,13 @@ class MainActivity : ComponentActivity() {
 
     private var filePathCallback: ValueCallback<Array<Uri>>? = null
     private var pendingPermissionRequest: PermissionRequest? = null
+    private var pendingPermissionHost: String? = null
+    private var pendingPermissionTypes: List<PermissionType> = emptyList()
+    private var pendingPermissionTtlHours: Int = 24
     private var pendingGeoCallback: GeolocationPermissions.Callback? = null
     private var pendingGeoOrigin: String? = null
+    private var pendingGeoHost: String? = null
+    private var pendingGeoTtlHours: Int = 24
 
     private val fileChooserLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
@@ -97,17 +108,34 @@ class MainActivity : ComponentActivity() {
         ActivityResultContracts.RequestMultiplePermissions()
     ) { grants ->
         pendingPermissionRequest?.let { request ->
-            if (grants.values.all { it }) request.grant(request.resources) else request.deny()
+            if (grants.values.all { it }) {
+                request.grant(request.resources)
+                pendingPermissionHost?.let { host -> persistPermissionGrants(host, pendingPermissionTypes, pendingPermissionTtlHours) }
+            } else {
+                request.deny()
+            }
         }
         pendingPermissionRequest = null
+        pendingPermissionHost = null
+        pendingPermissionTypes = emptyList()
 
         pendingGeoCallback?.let { callback ->
             val granted = grants[Manifest.permission.ACCESS_FINE_LOCATION] == true ||
                 grants[Manifest.permission.ACCESS_COARSE_LOCATION] == true
             callback.invoke(pendingGeoOrigin, granted, false)
+            if (granted) pendingGeoHost?.let { host -> persistPermissionGrants(host, listOf(PermissionType.LOCATION), pendingGeoTtlHours) }
         }
         pendingGeoCallback = null
         pendingGeoOrigin = null
+        pendingGeoHost = null
+    }
+
+    /** Phase 21 — persists a time-limited grant so [PermissionType] requests from [host] skip re-prompting until it expires. TTL < 0 means "ask every time" — nothing is persisted. */
+    private fun persistPermissionGrants(host: String, types: List<PermissionType>, ttlHours: Int) {
+        if (ttlHours < 0 || types.isEmpty()) return
+        val repository = (application as BrowserApplication).repository
+        val ttlMillis = ttlHours * 3_600_000L
+        lifecycleScope.launch { types.forEach { repository.grantSitePermission(host, it, ttlMillis) } }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -126,10 +154,10 @@ class MainActivity : ComponentActivity() {
                 BrowserNavHost(
                     onShowFileChooser = { callback, params -> showFileChooser(callback, params) },
                     onPermissionRequested = { request ->
-                        handlePermissionRequest(request, settings.micPermission, settings.cameraPermission)
+                        handlePermissionRequest(request, settings.micPermission, settings.cameraPermission, settings.permissionGrantTtlHours)
                     },
                     onGeolocationPermissionRequested = { origin, callback ->
-                        handleGeolocationPermission(origin, callback, settings.locationPermission)
+                        handleGeolocationPermission(origin, callback, settings.locationPermission, settings.permissionGrantTtlHours)
                     },
                     onInstallShortcut = { url, title -> installShortcut(url, title) },
                     onPrint = { webView -> printPage(webView) }
@@ -153,7 +181,23 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    private fun handlePermissionRequest(request: PermissionRequest, micAllowed: Boolean, cameraAllowed: Boolean) {
+    private fun toPermissionType(resource: String): PermissionType? = when (resource) {
+        PermissionRequest.RESOURCE_AUDIO_CAPTURE -> PermissionType.MICROPHONE
+        PermissionRequest.RESOURCE_VIDEO_CAPTURE -> PermissionType.CAMERA
+        else -> null
+    }
+
+    // Phase 21: checks for a non-expired per-site grant before falling back to the Site Settings
+    // gate + Android runtime prompt.
+    private fun handlePermissionRequest(request: PermissionRequest, micAllowed: Boolean, cameraAllowed: Boolean, ttlHours: Int) {
+        val repository = (application as BrowserApplication).repository
+        val host = request.origin.host
+        if (host == null) {
+            request.deny()
+            return
+        }
+        // Only resources whose master Site Settings toggle is on are eligible at all — a stored
+        // grant must never bypass that toggle if the user has since turned it off.
         val grantedResources = request.resources.filter { resource ->
             when (resource) {
                 PermissionRequest.RESOURCE_AUDIO_CAPTURE -> micAllowed
@@ -165,45 +209,76 @@ class MainActivity : ComponentActivity() {
             request.deny()
             return
         }
+        val eligibleTypes = grantedResources.mapNotNull(::toPermissionType)
 
-        val androidPermissions = grantedResources.mapNotNull {
-            when (it) {
-                PermissionRequest.RESOURCE_AUDIO_CAPTURE -> Manifest.permission.RECORD_AUDIO
-                PermissionRequest.RESOURCE_VIDEO_CAPTURE -> Manifest.permission.CAMERA
-                else -> null
+        lifecycleScope.launch {
+            val hasActiveGrant = eligibleTypes.isNotEmpty() && eligibleTypes.all { repository.findActivePermissionGrant(host, it) != null }
+            if (hasActiveGrant) {
+                request.grant(grantedResources.toTypedArray())
+                return@launch
             }
-        }.toTypedArray()
 
-        val allGranted = androidPermissions.all {
-            ContextCompat.checkSelfPermission(this, it) == PackageManager.PERMISSION_GRANTED
-        }
-        if (allGranted) {
-            request.grant(grantedResources.toTypedArray())
-        } else {
-            pendingPermissionRequest = request
-            permissionLauncher.launch(androidPermissions)
+            val androidPermissions = grantedResources.mapNotNull {
+                when (it) {
+                    PermissionRequest.RESOURCE_AUDIO_CAPTURE -> Manifest.permission.RECORD_AUDIO
+                    PermissionRequest.RESOURCE_VIDEO_CAPTURE -> Manifest.permission.CAMERA
+                    else -> null
+                }
+            }.toTypedArray()
+
+            val allGranted = androidPermissions.all {
+                ContextCompat.checkSelfPermission(this@MainActivity, it) == PackageManager.PERMISSION_GRANTED
+            }
+            if (allGranted) {
+                request.grant(grantedResources.toTypedArray())
+                persistPermissionGrants(host, eligibleTypes, ttlHours)
+            } else {
+                pendingPermissionRequest = request
+                pendingPermissionHost = host
+                pendingPermissionTypes = eligibleTypes
+                pendingPermissionTtlHours = ttlHours
+                permissionLauncher.launch(androidPermissions)
+            }
         }
     }
 
     private fun handleGeolocationPermission(
         origin: String,
         callback: GeolocationPermissions.Callback,
-        locationAllowed: Boolean
+        locationAllowed: Boolean,
+        ttlHours: Int
     ) {
         if (!locationAllowed) {
             callback.invoke(origin, false, false)
             return
         }
-        val fineGranted = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) ==
-            PackageManager.PERMISSION_GRANTED
-        if (fineGranted) {
-            callback.invoke(origin, true, false)
-        } else {
-            pendingGeoCallback = callback
-            pendingGeoOrigin = origin
-            permissionLauncher.launch(
-                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION)
-            )
+        val repository = (application as BrowserApplication).repository
+        val host = runCatching { Uri.parse(origin).host }.getOrNull()
+        if (host == null) {
+            callback.invoke(origin, false, false)
+            return
+        }
+
+        lifecycleScope.launch {
+            if (repository.findActivePermissionGrant(host, PermissionType.LOCATION) != null) {
+                callback.invoke(origin, true, false)
+                return@launch
+            }
+
+            val fineGranted = ContextCompat.checkSelfPermission(this@MainActivity, Manifest.permission.ACCESS_FINE_LOCATION) ==
+                PackageManager.PERMISSION_GRANTED
+            if (fineGranted) {
+                callback.invoke(origin, true, false)
+                persistPermissionGrants(host, listOf(PermissionType.LOCATION), ttlHours)
+            } else {
+                pendingGeoCallback = callback
+                pendingGeoOrigin = origin
+                pendingGeoHost = host
+                pendingGeoTtlHours = ttlHours
+                permissionLauncher.launch(
+                    arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION)
+                )
+            }
         }
     }
 
@@ -242,8 +317,35 @@ fun BrowserNavHost(
     val quickAccessViewModel: QuickAccessViewModel = viewModel()
     val settings by settingsViewModel.settings.collectAsStateWithLifecycle()
     val context = LocalContext.current
+    val app = context.applicationContext as BrowserApplication
+    val coroutineScope = rememberCoroutineScope()
     var menuVisible by remember { mutableStateOf(false) }
     var findInPageSignal by remember { mutableIntStateOf(0) }
+    var elementPickerActive by remember { mutableStateOf(false) }
+    var shieldsSheetVisible by remember { mutableStateOf(false) }
+
+    // Phase 17-19 — single lambda bundle threaded down to every BrowserWebViewClient instance.
+    val shields = remember(settings) {
+        WebShieldsContext(
+            effectiveShields = { host -> app.shieldsResolver.effectiveShields(host) },
+            isHostBlocked = { host -> app.adTrackerBlocklist.isBlocked(host) || app.cosmeticRuleStore.isDomainBlocked(host) },
+            cosmeticSelectors = { host -> app.cosmeticRuleStore.selectorsFor(host) },
+            navigationHeaders = {
+                if (settings.antiFingerprintingEnabled) {
+                    mapOf("Sec-GPC" to "1", "Accept-Language" to "en-US")
+                } else {
+                    emptyMap()
+                }
+            },
+            httpsUpgradeEnabled = true,
+            trackingParamStrippingEnabled = true,
+            redirectorUnwrapEnabled = true,
+            deAmpEnabled = true
+        )
+    }
+
+    fun hostOfTab(tab: com.prime.nobuffer.tabs.BrowserTab?): String =
+        runCatching { Uri.parse(tab?.url.orEmpty()).host }.getOrNull().orEmpty()
 
     val lifecycleOwner = LocalLifecycleOwner.current
     DisposableEffect(lifecycleOwner, tabsViewModel) {
@@ -265,7 +367,7 @@ fun BrowserNavHost(
     LaunchedEffect(settings, tabs) {
         tabs.forEach { tab ->
             val webView = tab.webView ?: return@forEach
-            webView.settings.javaScriptEnabled = settings.javaScriptEnabled
+            webView.settings.javaScriptEnabled = app.shieldsResolver.effectiveShields(hostOfTab(tab)).scriptsEnabled
             webView.settings.textZoom = settings.textZoom
             webView.settings.userAgentString =
                 if (settings.desktopSiteEnabled) BrowserWebView.DESKTOP_UA else BrowserWebView.CHROME_UA
@@ -327,9 +429,50 @@ fun BrowserNavHost(
                 menuVisible = false
                 findInPageSignal++
             },
+            onBlockElement = {
+                menuVisible = false
+                elementPickerActive = true
+            },
             onSettings = {
                 menuVisible = false
                 navController.navigate(Screen.Settings.route)
+            }
+        )
+    }
+
+    if (shieldsSheetVisible) {
+        val host = hostOfTab(activeTab)
+        val effective = app.shieldsResolver.effectiveShields(host)
+        val override = app.shieldsResolver.currentOverride(host)
+        ShieldsBottomSheet(
+            host = host,
+            effective = effective,
+            hasOverride = override != null,
+            onDismiss = { shieldsSheetVisible = false },
+            onSetAdBlock = { value ->
+                coroutineScope.launch {
+                    app.shieldsResolver.setOverride(host, value, effective.trackerBlockEnabled, effective.scriptsEnabled, effective.fingerprintProtectionEnabled)
+                }
+            },
+            onSetTrackerBlock = { value ->
+                coroutineScope.launch {
+                    app.shieldsResolver.setOverride(host, effective.adBlockEnabled, value, effective.scriptsEnabled, effective.fingerprintProtectionEnabled)
+                }
+            },
+            onSetScriptsEnabled = { value ->
+                coroutineScope.launch {
+                    app.shieldsResolver.setOverride(host, effective.adBlockEnabled, effective.trackerBlockEnabled, value, effective.fingerprintProtectionEnabled)
+                }
+                activeTab?.webView?.settings?.javaScriptEnabled = value
+            },
+            onSetFingerprintProtection = { value ->
+                coroutineScope.launch {
+                    app.shieldsResolver.setOverride(host, effective.adBlockEnabled, effective.trackerBlockEnabled, effective.scriptsEnabled, value)
+                }
+                activeTab?.webView?.setFingerprintProtectionEnabled(value)
+            },
+            onResetToDefault = {
+                coroutineScope.launch { app.shieldsResolver.clearOverride(host) }
             }
         )
     }
@@ -364,13 +507,32 @@ fun BrowserNavHost(
                             isIncognito = tab.isIncognito,
                             webView = tab.webView,
                             findInPageSignal = findInPageSignal,
+                            blockedCount = tab.blockedCount,
+                            shields = shields,
+                            elementPickerActive = elementPickerActive,
                             onUrlChanged = { url -> tabsViewModel.updateTabInfo(tab.id, url = url) },
                             onTitleChanged = { title -> tabsViewModel.updateTabInfo(tab.id, title = title) },
                             onOpenOmnibox = openOmnibox,
                             onOpenTabSwitcher = openTabSwitcher,
                             onOpenMenu = { menuVisible = true },
+                            onOpenShields = { shieldsSheetVisible = true },
                             onExhausted = onCloseOrFinish,
                             onWebViewReady = { wv -> tabsViewModel.attachWebView(tab.id, wv) },
+                            onRequestBlocked = { tabsViewModel.incrementBlockedCount(tab.id) },
+                            onElementPicked = { selector, webView ->
+                                elementPickerActive = false
+                                val host = hostOfTab(tab)
+                                if (host.isNotBlank()) {
+                                    coroutineScope.launch {
+                                        app.cosmeticRuleStore.addSiteCosmeticRule(host, selector)
+                                    }
+                                    webView.evaluateJavascript(
+                                        "(function(){document.querySelectorAll('${selector.replace("'", "\\'")}').forEach(function(el){el.style.setProperty('display','none','important');});})();",
+                                        null
+                                    )
+                                }
+                            },
+                            onCancelElementPicker = { elementPickerActive = false },
                             onShowFileChooser = onShowFileChooser,
                             onPermissionRequested = onPermissionRequested,
                             onGeolocationPermissionRequested = onGeolocationPermissionRequested

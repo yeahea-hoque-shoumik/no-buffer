@@ -53,6 +53,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.prime.nobuffer.history.HistoryViewModel
 import com.prime.nobuffer.settings.DarkModeOption
 import com.prime.nobuffer.settings.SettingsViewModel
+import com.prime.nobuffer.settings.ShieldsMode
 import com.prime.nobuffer.ui.components.ClearBrowsingDataDialog
 import com.prime.nobuffer.ui.components.HomeIndicator
 import com.prime.nobuffer.ui.components.StatusBar
@@ -86,6 +87,7 @@ fun SettingsScreen(
     var showThemeDialog by remember { mutableStateOf(false) }
     var showZoomDialog by remember { mutableStateOf(false) }
     var showClearDataDialog by remember { mutableStateOf(false) }
+    var showShieldsModeDialog by remember { mutableStateOf(false) }
 
     LazyColumn(
         modifier = modifier
@@ -148,9 +150,15 @@ fun SettingsScreen(
 
         item {
             SettingsSection(title = "PRIVACY & SECURITY") {
-                ToggleRow(icon = "🛡️", label = "Ad Blocker", checked = settings.adBlockerEnabled) { viewModel.setAdBlockerEnabled(it) }
+                SettingsRow(
+                    icon = "🛡️",
+                    label = "Shields",
+                    value = settings.shieldsMode.name.lowercase().replaceFirstChar { it.uppercase() }
+                ) { showShieldsModeDialog = true }
+                ToggleRow(icon = "🚷", label = "Ad Blocker", checked = settings.adBlockerEnabled) { viewModel.setAdBlockerEnabled(it) }
                 ToggleRow(icon = "🚫", label = "Do Not Track", checked = settings.doNotTrackEnabled) { viewModel.setDoNotTrackEnabled(it) }
                 ToggleRow(icon = "🍪", label = "Block 3rd-party Cookies", checked = settings.blockThirdPartyCookies) { viewModel.setBlockThirdPartyCookies(it) }
+                ToggleRow(icon = "🕵️", label = "Anti-Fingerprinting", checked = settings.antiFingerprintingEnabled) { viewModel.setAntiFingerprintingEnabled(it) }
                 SettingsRow(icon = "🔒", label = "Privacy & Security", value = "", onClick = onOpenPrivacy)
                 SettingsRow(icon = "🌐", label = "Site Settings", value = "", onClick = onOpenSite)
                 SettingsRow(icon = "🧹", label = "Clear Browsing Data", value = "", showDivider = false, onClick = { showClearDataDialog = true })
@@ -229,6 +237,19 @@ fun SettingsScreen(
             current = settings.textZoom,
             onConfirm = { viewModel.setTextZoom(it); showZoomDialog = false },
             onDismiss = { showZoomDialog = false }
+        )
+    }
+
+    if (showShieldsModeDialog) {
+        SelectorDialog(
+            title = "Shields",
+            options = ShieldsMode.entries.map { it.name.lowercase().replaceFirstChar { c -> c.uppercase() } },
+            selected = settings.shieldsMode.name.lowercase().replaceFirstChar { it.uppercase() },
+            onSelect = { label ->
+                viewModel.setShieldsMode(ShieldsMode.valueOf(label.uppercase()))
+                showShieldsModeDialog = false
+            },
+            onDismiss = { showShieldsModeDialog = false }
         )
     }
 

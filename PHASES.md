@@ -326,6 +326,90 @@ Cross-reference `PLAN.md` for full design specs per screen.
 
 ---
 
+## Brave Shields Parity — Feasibility Notes
+
+Brave Shields is implemented at the Chromium-engine level (C++ hooks into the network stack, storage
+partitioning, process model). This app runs on **Android system WebView**, a black-box engine with a
+narrower API surface (`shouldInterceptRequest`, JS injection, `WebSettings`, cookie/storage managers).
+Everything below is scoped to what's actually reachable through that surface — phases are tagged:
+
+- **DOABLE** — implementable with existing WebView APIs, comparable in effect to Brave's version
+- **PARTIAL** — implementable but weaker than Brave's engine-level version (JS-shim based, or narrow pattern-list based instead of general heuristic)
+- **SKIP** — requires engine/OS-level hooks system WebView does not expose; not implementable without shipping a custom browser engine
+
+---
+
+## Phase 17 — Content Blocking Engine (Ads, Trackers, Social Embeds) ✅
+
+> Extends the existing Layer 1 (`shouldInterceptRequest`)/Layer 2 (JS injection) pattern from Phase 2's video blocking to general ad/tracker blocking.
+
+- [x] **DOABLE** — Static blocklist bundled as a raw asset (`assets/blocklists/ad_tracker_hosts.txt`, ~150 curated ad/tracker/social-SDK domains), loaded into an in-memory `HashSet` by `shields/AdTrackerBlocklist.kt` at startup (domain + all subdomains match)
+- [x] **DOABLE** — Network-level ad/tracker blocking: `BrowserWebViewClient.shouldInterceptRequest` checks non-main-frame request hosts against the blocklist (+ imported custom domain rules) via an `isHostBlocked` lambda, returns an empty `WebResourceResponse` on match, gated on `ShieldsResolver`'s effective ad/tracker-block flags for the current page's host
+- [x] **DOABLE** — Cosmetic filtering: `shields/CosmeticSelectors.kt` holds a curated `display:none` selector list (generic ad-slot conventions + social embed placeholders) injected in `onPageFinished` with a `MutationObserver` reattachment, mirroring the video-element removal pattern
+- [x] **DOABLE** — Social media embed blocking: FB/Twitter/LinkedIn/Pinterest/TikTok/Instagram SDK + widget hosts added to the blocklist; their embed placeholders covered by the cosmetic selector list
+- [x] **PARTIAL** — Custom filter list import (`shields/CustomFilterListParser.kt`): parses only plain domain-blocking lines (`||domain.com^`) and simple cosmetic rules (`domain.com##.selector`) from pasted text (Settings → Privacy & Security → Custom Filter List); `$third-party`/`$domain=`/regex options, scriptlets, `@@` exceptions are explicitly unsupported and silently ignored rather than mis-applied
+- [x] **DOABLE** — Element blocker / tap-to-block picker: overflow menu → "Block Element" enters picker mode (`BrowserWebView.startElementPicker`, JS click-capture + selector computation via a `NoBufferElementPicker` JS interface); the selector is stored per-host in the new `site_cosmetic_rules` Room table and hidden immediately + on future loads of that site
+- [x] Block counter: `BrowserTab.blockedCount` (reset on URL change, incremented via `TabsViewModel.incrementBlockedCount`), surfaced as a badge on the new shield icon in `PillBar`
+
+---
+
+## Phase 18 — Anti-Fingerprinting & Request Hardening ✅
+
+> All items here are **JS-injection or header-level shims** — system WebView has no engine hook equivalent to Brave's per-session farbling, so these raise the bar but are more defeatable than Brave's implementation. This limitation is disclosed in the Settings toggle copy.
+
+- [x] **PARTIAL** ("farbling-lite") — `shields/FingerprintProtectionJs.kt`, injected via `WebViewCompat.addDocumentStartJavaScript` (falls back to no-op when `DOCUMENT_START_SCRIPT` isn't supported) with a per-WebView-instance random seed; overrides `HTMLCanvasElement.toDataURL`/`CanvasRenderingContext2D.getImageData`, `AudioBuffer.getChannelData`, and `WebGLRenderingContext.getParameter` — JS-level, not hardened against `Function.prototype.toString` detection
+- [x] **DOABLE** — `navigator.language`/`navigator.languages` overridden to `en-US` by the same document-start script; `Accept-Language: en-US` attached via `WebView.loadUrl(url, extraHeaders)` at the two navigation choke points (initial `BrowserWebViewComposable` load + `shouldOverrideUrlLoading`) rather than a global `WebSettings` API (no such per-app API exists on Android WebView — that's the real, working mechanism for this)
+- [x] **SKIP** (documented) — Client hints reduction: confirmed no `WebSettingsCompat` user-agent-metadata API exists on webkit 1.13.0 to strip `Sec-CH-UA*`; those headers are attached by the engine before `shouldInterceptRequest`/`loadUrl(headers)` can touch them
+- [x] **DOABLE** — Referrer policy hardening: `<meta name="referrer" content="strict-origin-when-cross-origin">` inserted by the document-start script (with a `MutationObserver` fallback if `<head>` isn't attached yet)
+- [x] **DOABLE** — GPC: `navigator.globalPrivacyControl` defined via the document-start script; `Sec-GPC: 1` attached via the same `loadUrl(url, extraHeaders)` mechanism as Accept-Language (main-frame only — subresources can't carry it, a WebView limitation)
+- [x] Settings UI: single "Anti-Fingerprinting" toggle (default on) in both Settings → Privacy & Security and the Privacy sub-screen; per-site override available from the `PillBar` shield icon (Phase 20)
+
+---
+
+## Phase 19 — Navigation & URL Hardening ✅
+
+- [x] **DOABLE** — HTTPS upgrading (main-frame only): `BrowserWebViewClient.resolveNavigationUrl` rewrites `http://` → `https://` at both navigation choke points; on failure (`onReceivedError` for that main-frame request) falls back to the original `http://` URL, marks the host as abandoned for the rest of the session, and shows a "loaded over HTTP" Toast instead of a modal interstitial; subresource upgrading remains **SKIP** per the original reasoning
+- [x] **DOABLE** — Query-parameter stripping (`shields/UrlSanitizer.stripTrackingParams`): strips `utm_*`, `fbclid`, `gclid`, `msclkid`, `mc_eid`, `igshid`, and a few more, applied at both navigation choke points; no separate "copy link" action exists in this app yet, so that half of the original bullet doesn't apply
+- [x] **PARTIAL** — Tracking-redirect debouncing (`UrlSanitizer.unwrapRedirector`): list-based unwrap of Google `/url?q=` and Facebook `l.php?u=` wrappers only; `t.co` and other opaque shorteners need a real network hop to resolve and are out of scope, as documented originally
+- [x] **DOABLE** — De-AMP: `UrlSanitizer.isAmpUrl` matches `cdn.ampproject.org`/`/amp/` path segments; on match, `onPageFinished` reads the loaded page's `<link rel="canonical">` via JS and redirects to it if present and non-AMP
+
+---
+
+## Phase 20 — Shields UI (Per-Site Controls + Global Defaults) ✅
+
+- [x] New Room table `site_shield_overrides` (`SiteShieldOverride(host, adBlock, trackerBlock, scriptsEnabled, fingerprintProtection)` — nullable fields inherit the global default)
+- [x] Global defaults: `ShieldsMode` enum (Standard / Aggressive / Disabled) in `SettingsRepository`/DataStore, selectable from Settings → Privacy & Security → Shields
+- [x] Per-site override UI: shield icon added to `PillBar` next to the tabs button (badge = this page's blocked-request count), opening `ShieldsBottomSheet` with the site's effective ad-block/tracker-block/scripts/fingerprint-protection switches + a "Reset" action clearing the override
+- [x] Site Settings' JavaScript toggle stays global-only (per-site JS control now lives in the Shields sheet instead, to avoid two competing per-site JS controls); the Shields sheet is the actual per-site entry point
+- [x] `shields/ShieldsResolver.kt` is the single source of truth — layers a per-site override on top of the global `ShieldsMode`/settings snapshot, kept in-memory and updated via background Flow collectors so `BrowserWebViewClient` callbacks (called off the UI thread) can read it synchronously without hitting Room
+
+---
+
+## Phase 21 — Time-Limited Permission Grants ✅
+
+> Extends Phase 15's per-request Camera/Mic/Location permission prompting.
+
+- [x] New Room table `site_permission_grants` (`SitePermissionGrant(host, permissionType, grantedAt, expiresAt)`, composite PK on host+type)
+- [x] `MainActivity.handlePermissionRequest`/`handleGeolocationPermission`: checks for a non-expired grant first (only among resource types whose Site Settings master toggle is still on, so a stored grant can never bypass a toggle the user has since turned off) before falling back to the Android runtime prompt; writes a new grant with the configured TTL on approval instead of only an in-memory decision
+- [x] Background cleanup: `BrowserRepository.purgeExpiredPermissionGrants()` called from `BrowserApplication.onCreate`
+- [x] Settings UI: grant TTL selector (1 hour / 24 hours / 7 days / Ask every time — the last skips persisting a grant entirely) under Site Settings
+
+---
+
+## Not Feasible on Android System WebView
+
+These Brave Shields features require Chromium-engine-level or OS-network-level hooks that system
+WebView does not expose to host apps. Listed here so they aren't silently dropped from the plan —
+they're an explicit **won't-do** given this app's architecture, not an oversight:
+
+- **DOM/network state partitioning** — storage isolation keyed by top-level site requires engine-level partitioning of the cookie jar/localStorage/cache; Android's `CookieManager`/`WebStorage` are process-wide singletons with no per-top-level-site partition API
+- **Bounce-tracking protection (general/heuristic)** — Brave's version uses interaction + storage-access timing heuristics deep in the engine; only the narrow list-based redirector unwrapping in Phase 19 is achievable here
+- **CNAME cloaking protection** — requires intercepting DNS resolution (including CNAME chain inspection) before the engine connects; WebView performs its own DNS resolution with no hook to inspect or veto it pre-connect
+- **"Pool-party" side-channel mitigation** — a process-scheduler-level mitigation specific to Brave/Chromium's process model; not something an app hosting WebView can influence
+- **Limited first-run/background telemetry calls** — N/A rather than skip: this app already makes no background telemetry calls of its own, so there's nothing to reduce
+
+---
+
 ## Recommended Build Order
 
 Follow this sequence to keep each phase runnable end-to-end:
@@ -346,3 +430,8 @@ Follow this sequence to keep each phase runnable end-to-end:
 14. ✅ Phase 14 — Incognito Mode
 15. ✅ Phase 15 — Security & Lifecycle Polish
 16. Phase 16 — Full QA (manual/device testing — not code, out of scope for automated build)
+17. ✅ Phase 17 — Content Blocking Engine (Ads, Trackers, Social Embeds)
+18. ✅ Phase 18 — Anti-Fingerprinting & Request Hardening
+19. ✅ Phase 19 — Navigation & URL Hardening
+20. ✅ Phase 20 — Shields UI (Per-Site Controls + Global Defaults)
+21. ✅ Phase 21 — Time-Limited Permission Grants

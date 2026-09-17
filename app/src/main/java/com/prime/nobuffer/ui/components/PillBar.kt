@@ -34,10 +34,12 @@ fun PillBar(
     modifier: Modifier = Modifier,
     showBack: Boolean = false,
     tabCount: Int = 1,
+    blockedCount: Int = 0,
     onBackClick: () -> Unit = {},
     onFieldClick: () -> Unit = {},
     onTabsClick: () -> Unit = {},
-    onMenuClick: () -> Unit = {}
+    onMenuClick: () -> Unit = {},
+    onShieldsClick: () -> Unit = {}
 ) {
     val colors = Orion.colors
     val isSearchMode = url.isNullOrBlank() || url == "about:blank"
@@ -105,6 +107,12 @@ fun PillBar(
 
             Box(modifier = Modifier.size(6.dp))
 
+            if (!isSearchMode) {
+                IconTile(onClick = onShieldsClick) {
+                    ShieldGlyph(color = if (blockedCount > 0) colors.teal else colors.textMid, count = blockedCount)
+                }
+            }
+
             IconTile(onClick = onTabsClick) {
                 TabCountBadge(count = tabCount, color = colors.textMid, size = 20.dp)
             }
@@ -167,6 +175,34 @@ private fun LockGlyph(color: androidx.compose.ui.graphics.Color) {
 @Composable
 private fun WarningGlyph(color: androidx.compose.ui.graphics.Color) {
     Text("!", color = color, fontSize = 13.sp)
+}
+
+@Composable
+private fun ShieldGlyph(color: androidx.compose.ui.graphics.Color, count: Int) {
+    Box(contentAlignment = Alignment.Center) {
+        Canvas(modifier = Modifier.size(18.dp)) {
+            val w = size.width
+            val h = size.height
+            val path = androidx.compose.ui.graphics.Path().apply {
+                moveTo(w * 0.5f, 0f)
+                lineTo(w * 0.92f, h * 0.2f)
+                lineTo(w * 0.92f, h * 0.55f)
+                cubicTo(w * 0.92f, h * 0.82f, w * 0.72f, h * 0.98f, w * 0.5f, h)
+                cubicTo(w * 0.28f, h * 0.98f, w * 0.08f, h * 0.82f, w * 0.08f, h * 0.55f)
+                lineTo(w * 0.08f, h * 0.2f)
+                close()
+            }
+            drawPath(path, color = color, style = Stroke(width = 1.6.dp.toPx()))
+        }
+        if (count > 0) {
+            Text(
+                text = if (count > 99) "99+" else count.toString(),
+                color = color,
+                fontSize = 8.sp,
+                fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
+            )
+        }
+    }
 }
 
 private fun hostOf(url: String?): String {

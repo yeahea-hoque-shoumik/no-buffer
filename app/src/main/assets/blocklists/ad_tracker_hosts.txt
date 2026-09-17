@@ -1,0 +1,148 @@
+# NoBuffer Shields — curated ad & tracker host list (Phase 17)
+# One domain per line. Matches domain + all subdomains. Lines starting with # ignored.
+# Not a full EasyList/EasyPrivacy replacement — starter set covering major
+# ad networks, exchanges, and analytics/tracking pixels. Extend as needed.
+
+# --- Google ad stack ---
+doubleclick.net
+googlesyndication.com
+googleadservices.com
+adservice.google.com
+pagead2.googlesyndication.com
+googletagservices.com
+google-analytics.com
+googletagmanager.com
+adsafeprotected.com
+2mdn.net
+admob.com
+admeld.com
+doubleverify.com
+
+# --- Meta / Facebook ---
+connect.facebook.net
+facebook.net
+fbcdn.net
+an.facebook.com
+
+# --- Amazon ad system ---
+amazon-adsystem.com
+assoc-amazon.com
+
+# --- Major exchanges / SSPs / DSPs ---
+adnxs.com
+adnxs-simple.com
+rubiconproject.com
+pubmatic.com
+openx.net
+openx.com
+indexexchange.com
+casalemedia.com
+triplelift.com
+sovrn.com
+media.net
+smartadserver.com
+adform.net
+adition.com
+yieldmo.com
+sharethrough.com
+teads.tv
+criteo.com
+criteo.net
+conversantmedia.com
+bidswitch.net
+contextweb.com
+gumgum.com
+sonobi.com
+33across.com
+lijit.com
+mathtag.com
+rlcdn.com
+rfihub.com
+demdex.net
+
+# --- Content recommendation / native ad ---
+taboola.com
+outbrain.com
+mgid.com
+revcontent.com
+zemanta.com
+
+# --- Ad verification / measurement ---
+moatads.com
+integral-marketing.com
+adsafeprotected.com
+scorecardresearch.com
+quantserve.com
+comscore.com
+chartbeat.com
+chartbeat.net
+
+# --- Analytics / behavioral trackers ---
+mixpanel.com
+segment.io
+segment.com
+amplitude.com
+hotjar.com
+fullstory.com
+crazyegg.com
+clicktale.net
+mouseflow.com
+heap.io
+kissmetrics.com
+optimizely.com
+newrelic.com
+nr-data.net
+bugsnag.com
+appsflyer.com
+adjust.com
+branch.io
+kochava.com
+singular.net
+
+# --- Social widget trackers (Phase 17 — SDK + embed widget hosts) ---
+platform.twitter.com
+analytics.twitter.com
+ads-twitter.com
+static.ads-twitter.com
+syndication.twitter.com
+platform.linkedin.com
+px.ads.linkedin.com
+snap.licdn.com
+analytics.pinterest.com
+ct.pinterest.com
+widgets.pinterest.com
+ads-api.tiktok.com
+analytics.tiktok.com
+sc-static.net
+tr.snapchat.com
+s7.addthis.com
+addthisedge.com
+platform.instagram.com
+connect.mixpanel.com
+
+# --- Yahoo / Verizon Media / Bing ad stack ---
+adtech.yahoo.com
+ads.yahoo.com
+gemini.yahoo.com
+bat.bing.com
+ads.bing.com
+c.bing.com
+
+# --- Misc trackers / data brokers ---
+exelator.com
+bluekai.com
+krxd.net
+tapad.com
+agkn.com
+turn.com
+adsrvr.org
+rhythmone.com
+undertone.com
+adroll.com
+adcolony.com
+vungle.com
+chartboost.com
+inmobi.com
+startapp.com
+flurry.com
+tune.com

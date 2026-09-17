@@ -31,12 +31,15 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+import com.prime.nobuffer.shields.WebShieldsContext
 
 @Composable
 fun BrowserWebViewComposable(
     url: String,
     modifier: Modifier = Modifier,
     existingWebView: BrowserWebView? = null,
+    shields: WebShieldsContext = WebShieldsContext.disabled(),
+    onRequestBlocked: () -> Unit = {},
     onProgressChanged: (Int) -> Unit = {},
     onPageStarted: (String) -> Unit = {},
     onPageFinished: (url: String, title: String?) -> Unit = { _, _ -> },
@@ -55,15 +58,31 @@ fun BrowserWebViewComposable(
     val webView = remember(existingWebView) {
         (existingWebView ?: BrowserWebView(context)).apply {
             webViewClient = BrowserWebViewClient(
-                onPageStarted = onPageStarted,
-                onPageFinished = { url, title ->
+                onPageStarted = { pageUrl ->
+                    val host = runCatching { Uri.parse(pageUrl).host }.getOrNull()
+                    setFingerprintProtectionEnabled(shields.effectiveShields(host).fingerprintProtectionEnabled)
+                    onPageStarted(pageUrl)
+                },
+                onPageFinished = { pageUrl, title ->
                     isRefreshing = false
-                    onPageFinished(url, title)
+                    onPageFinished(pageUrl, title)
                 },
                 onSslError = { handler, error ->
                     showSslErrorDialog(this, handler, error)
                 },
-                onReceivedError = { isRefreshing = false }
+                onReceivedError = { isRefreshing = false },
+                effectiveShields = shields.effectiveShields,
+                isHostBlocked = shields.isHostBlocked,
+                onRequestBlocked = onRequestBlocked,
+                cosmeticSelectors = shields.cosmeticSelectors,
+                httpsUpgradeEnabled = shields.httpsUpgradeEnabled,
+                trackingParamStrippingEnabled = shields.trackingParamStrippingEnabled,
+                redirectorUnwrapEnabled = shields.redirectorUnwrapEnabled,
+                deAmpEnabled = shields.deAmpEnabled,
+                onInsecureFallback = { fallbackUrl ->
+                    Toast.makeText(context, "Site doesn't support HTTPS — loaded over HTTP", Toast.LENGTH_SHORT).show()
+                },
+                navigationHeaders = shields.navigationHeaders
             )
             webChromeClient = BrowserWebChromeClient(
                 onProgressChanged = onProgressChanged,
@@ -119,7 +138,9 @@ fun BrowserWebViewComposable(
             update = { layout ->
                 layout.isRefreshing = isRefreshing
                 if (url.isNotBlank() && webView.url != url) {
-                    webView.loadUrl(url)
+                    val client = webView.webViewClient as? BrowserWebViewClient
+                    val resolved = client?.resolveNavigationUrl(url) ?: url
+                    webView.loadUrl(resolved, client?.currentNavigationHeaders() ?: emptyMap())
                 }
             }
         )

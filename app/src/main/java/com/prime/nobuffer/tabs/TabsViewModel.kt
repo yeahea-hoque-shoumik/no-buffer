@@ -89,6 +89,8 @@ class TabsViewModel(application: Application) : AndroidViewModel(application) {
 
     fun attachWebView(tabId: String, webView: BrowserWebView) = tabManager.attachWebView(tabId, webView)
 
+    fun incrementBlockedCount(tabId: String) = tabManager.incrementBlockedCount(tabId)
+
     fun persistTabs() {
         val currentTabs = tabManager.tabs.value
         val activeIdx = tabManager.activeIndex.value
