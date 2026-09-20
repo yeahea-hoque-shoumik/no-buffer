@@ -87,8 +87,7 @@ fun SettingsPrivacyScreen(
             PrivacyToggle("Block 3rd-party Cookies", settings.blockThirdPartyCookies) { viewModel.setBlockThirdPartyCookies(it) }
             PrivacyToggle("Do Not Track", settings.doNotTrackEnabled) { viewModel.setDoNotTrackEnabled(it) }
             PrivacyToggle("Safe Browsing", settings.safeBrowsingEnabled) { viewModel.setSafeBrowsingEnabled(it) }
-            PrivacyToggle("Anti-Fingerprinting", settings.antiFingerprintingEnabled) { viewModel.setAntiFingerprintingEnabled(it) }
-            PrivacyToggle("Search Suggestions", settings.searchSuggestionsEnabled, showDivider = false) { viewModel.setSearchSuggestionsEnabled(it) }
+            PrivacyToggle("Anti-Fingerprinting", settings.antiFingerprintingEnabled, showDivider = false) { viewModel.setAntiFingerprintingEnabled(it) }
         }
 
         Box(modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp)) {

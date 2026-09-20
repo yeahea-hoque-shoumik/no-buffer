@@ -30,7 +30,7 @@ import com.prime.nobuffer.data.entity.TabEntity
         CustomFilterRule::class, SitePermissionGrant::class,
         BlockedSite::class
     ],
-    version = 4,
+    version = 5,
     exportSchema = false
 )
 @TypeConverters(BrowserDatabaseConverters::class)

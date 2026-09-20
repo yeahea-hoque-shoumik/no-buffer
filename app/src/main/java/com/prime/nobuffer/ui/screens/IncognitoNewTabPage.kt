@@ -44,10 +44,10 @@ fun IncognitoNewTabContent(modifier: Modifier = Modifier) {
         )
         Box(modifier = Modifier.size(24.dp))
 
-        IncognitoBullet(glyph = "✓", text = "Orion won't save your browsing history, cookies, or site data")
-        IncognitoBullet(glyph = "✓", text = "Files you download will still be kept")
-        IncognitoBullet(glyph = "✗", text = "Your activity might still be visible to websites you visit")
-        IncognitoBullet(glyph = "✗", text = "Your activity might still be visible to your employer or ISP")
+        IncognitoBullet(glyph = "✓", text = "No history, autofill, downloads, or recently-closed entries")
+        IncognitoBullet(glyph = "✓", text = "Site storage stays in memory and is discarded with the tab")
+        IncognitoBullet(glyph = "✓", text = "Cookies for private-only sites are cleared when the last private tab closes")
+        IncognitoBullet(glyph = "✗", text = "Websites, your network, and Android itself can still see this session")
     }
 }
 

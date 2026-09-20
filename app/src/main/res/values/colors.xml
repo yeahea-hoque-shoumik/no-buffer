@@ -7,4 +7,10 @@
     <color name="teal_700">#FF018786</color>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    <color name="orion_bg">#FF08080F</color>
+    <color name="orion_surface">#FF101018</color>
+    <color name="orion_border">#FF252538</color>
+    <color name="orion_accent">#FF7B6EF5</color>
+    <color name="orion_text">#FFF0EFF8</color>
+    <color name="orion_text_mid">#FF9994B8</color>
 </resources>

@@ -3,9 +3,8 @@ package com.prime.nobuffer.tabs
 import android.content.Context
 import android.graphics.Bitmap
 import android.webkit.CookieManager
-import android.webkit.WebSettings
-import android.webkit.WebStorage
 import com.prime.nobuffer.browser.BrowserWebView
+import com.prime.nobuffer.browser.SiteCookies
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -13,7 +12,10 @@ import kotlinx.coroutines.flow.update
 
 data class ClosedTab(val tab: BrowserTab, val index: Int, val wasActive: Boolean)
 
-class TabManager(private val context: Context) {
+class TabManager(
+    private val context: Context,
+    recentlyClosedInitial: List<RecentlyClosedTab> = emptyList()
+) {
 
     private val _tabs = MutableStateFlow<List<BrowserTab>>(emptyList())
     val tabs: StateFlow<List<BrowserTab>> = _tabs.asStateFlow()
@@ -21,20 +23,46 @@ class TabManager(private val context: Context) {
     private val _activeIndex = MutableStateFlow(-1)
     val activeIndex: StateFlow<Int> = _activeIndex.asStateFlow()
 
+    private val recentlyClosedStore = RecentlyClosedStore(recentlyClosedInitial)
+    val recentlyClosed: StateFlow<List<RecentlyClosedTab>> = recentlyClosedStore.items
+
+    private val incognitoVisitedHosts = LinkedHashSet<String>()
+
     val activeTab: BrowserTab?
         get() = _tabs.value.getOrNull(_activeIndex.value)
+
+    fun popRecentlyClosed(): RecentlyClosedTab? = recentlyClosedStore.pop()
+
+    fun replaceRecentlyClosed(list: List<RecentlyClosedTab>) {
+        recentlyClosedStore.replaceAll(list)
+    }
+
+    fun updateDesktopSite(tabId: String, enabled: Boolean) {
+        updateTab(tabId) { it.copy(desktopSite = enabled) }
+    }
+
+    private fun recordClosed(tab: BrowserTab) {
+        recentlyClosedStore.push(
+            RecentlyClosedTab(
+                url = tab.url,
+                title = tab.title.ifBlank { tab.url },
+                isIncognito = tab.isIncognito,
+                closedAt = System.currentTimeMillis()
+            )
+        )
+    }
 
     fun newTab(url: String = "", isIncognito: Boolean = false): BrowserTab {
         val webView = BrowserWebView(context)
         if (isIncognito) {
-            webView.settings.cacheMode = WebSettings.LOAD_NO_CACHE
-            CookieManager.getInstance().setAcceptCookie(false)
+            webView.enableIncognitoIsolation()
         }
         val tab = BrowserTab(
             webView = webView,
             url = url,
             isIncognito = isIncognito
         )
+        noteIncognitoUrl(tab)
         _tabs.update { it + tab }
         _activeIndex.value = _tabs.value.lastIndex
         return tab
@@ -56,6 +84,7 @@ class TabManager(private val context: Context) {
         if (index == -1) return
 
         val closedTab = currentTabs[index]
+        recordClosed(closedTab)
         closedTab.webView?.destroy()
         val updatedTabs = currentTabs.toMutableList().apply { removeAt(index) }
         _tabs.value = updatedTabs
@@ -68,12 +97,7 @@ class TabManager(private val context: Context) {
         }
 
         if (closedTab.isIncognito && updatedTabs.none { it.isIncognito }) {
-            CookieManager.getInstance().apply {
-                removeSessionCookies(null)
-                flush()
-                setAcceptCookie(true)
-            }
-            WebStorage.getInstance().deleteAllData()
+            endIncognitoSession(updatedTabs)
         }
 
         if (updatedTabs.isEmpty()) {
@@ -118,15 +142,11 @@ class TabManager(private val context: Context) {
 
     /** Permanently disposes a tab removed via [removeTabForClose] once its undo window has elapsed. */
     fun finalizeRemovedTab(closed: ClosedTab) {
+        recordClosed(closed.tab)
         closed.tab.webView?.destroy()
 
         if (closed.tab.isIncognito && _tabs.value.none { it.isIncognito }) {
-            CookieManager.getInstance().apply {
-                removeSessionCookies(null)
-                flush()
-                setAcceptCookie(true)
-            }
-            WebStorage.getInstance().deleteAllData()
+            endIncognitoSession(_tabs.value)
         }
 
         if (_tabs.value.isEmpty()) {
@@ -146,14 +166,35 @@ class TabManager(private val context: Context) {
 
     fun updateTabInfo(tabId: String, url: String? = null, title: String? = null, favicon: Bitmap? = null) {
         updateTab(tabId) { tab ->
-            tab.copy(
+            val updated = tab.copy(
                 url = url ?: tab.url,
                 title = title ?: tab.title,
                 favicon = favicon ?: tab.favicon,
-                // A URL change means a new page load — reset the per-page block counter.
                 blockedCount = if (url != null && url != tab.url) 0 else tab.blockedCount
             )
+            noteIncognitoUrl(updated)
+            updated
         }
+    }
+
+    private fun noteIncognitoUrl(tab: BrowserTab) {
+        if (!tab.isIncognito) return
+        SiteCookies.hostFrom(tab.url)?.let { incognitoVisitedHosts.add(it) }
+    }
+
+    /**
+     * Drop cookies for hosts that were only used in private tabs. Regular tabs keep their
+     * cookies and WebStorage — system WebView has no per-profile jar, so we must not wipe globally.
+     */
+    private fun endIncognitoSession(remainingTabs: List<BrowserTab>) {
+        val regularHosts = remainingTabs
+            .filter { !it.isIncognito }
+            .mapNotNull { SiteCookies.hostFrom(it.url) }
+            .toSet()
+        val toPurge = incognitoVisitedHosts.filter { it !in regularHosts }
+        SiteCookies.expireHosts(toPurge)
+        incognitoVisitedHosts.clear()
+        CookieManager.getInstance().flush()
     }
 
     fun incrementBlockedCount(tabId: String) {

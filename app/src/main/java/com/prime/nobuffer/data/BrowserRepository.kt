@@ -116,4 +116,35 @@ class BrowserRepository(private val db: BrowserDatabase) {
     fun observeBlockedSites(): Flow<List<BlockedSite>> = db.blockedSiteDao().observeAll()
 
     suspend fun getBlockedHosts(): List<String> = db.blockedSiteDao().getHosts()
+
+    suspend fun getBlockedSites(): List<BlockedSite> = db.blockedSiteDao().getAll()
+
+    suspend fun findBlockedSite(host: String): BlockedSite? = db.blockedSiteDao().findByHost(host)
+
+    suspend fun updateBlockedSiteUnlockUntil(host: String, unlockUntil: Long) =
+        db.blockedSiteDao().updateUnlockUntil(host, unlockUntil)
+
+    suspend fun updateBlockedSiteSchedule(
+        host: String,
+        startMinute: Int,
+        endMinute: Int,
+        daysMask: Int
+    ) = db.blockedSiteDao().updateSchedule(host, startMinute, endMinute, daysMask)
+
+    suspend fun updateBlockedSiteDailyBudget(
+        host: String,
+        minutes: Int,
+        usedMillisToday: Long,
+        budgetDayEpoch: Long
+    ) = db.blockedSiteDao().updateDailyBudget(host, minutes, usedMillisToday, budgetDayEpoch)
+
+    suspend fun updateBlockedSiteVideoAllowed(host: String, allowed: Boolean) =
+        db.blockedSiteDao().updateVideoAllowed(host, allowed)
+
+    suspend fun updateBlockedSiteUsage(
+        host: String,
+        usedMillisToday: Long,
+        budgetDayEpoch: Long,
+        unlockUntil: Long
+    ) = db.blockedSiteDao().updateUsage(host, usedMillisToday, budgetDayEpoch, unlockUntil)
 }

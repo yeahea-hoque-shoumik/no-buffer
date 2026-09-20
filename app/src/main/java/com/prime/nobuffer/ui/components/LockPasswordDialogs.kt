@@ -77,6 +77,7 @@ fun VerifyLockPasswordDialog(
     title: String,
     error: String?,
     busy: Boolean = false,
+    confirmLabel: String = "Unlock",
     onConfirm: (password: String) -> Unit,
     onDismiss: () -> Unit
 ) {
@@ -102,7 +103,7 @@ fun VerifyLockPasswordDialog(
                 onClick = { if (password.isNotEmpty() && !busy) onConfirm(password) },
                 enabled = password.isNotEmpty() && !busy
             ) {
-                Text(if (busy) "Checking…" else "Unlock", color = if (password.isNotEmpty() && !busy) colors.accent else colors.textDim)
+                Text(if (busy) "Checking…" else confirmLabel, color = if (password.isNotEmpty() && !busy) colors.accent else colors.textDim)
             }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel", color = colors.textMid) } }

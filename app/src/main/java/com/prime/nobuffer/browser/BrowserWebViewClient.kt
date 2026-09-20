@@ -28,15 +28,14 @@ class BrowserWebViewClient(
     private val trackingParamStrippingEnabled: Boolean = true,
     private val redirectorUnwrapEnabled: Boolean = true,
     private val deAmpEnabled: Boolean = true,
-    private val onInsecureFallback: (url: String) -> Unit = {},
+    private val onHttpsLoadFailed: (url: String) -> Unit = {},
     private val navigationHeaders: () -> Map<String, String> = { emptyMap() },
     private val isSiteLocked: (String) -> Boolean = { false },
-    private val onSiteLocked: (String) -> Unit = {}
+    private val onSiteLocked: (String) -> Unit = {},
+    private val isVideoAllowed: (host: String?) -> Boolean = { false }
 ) : WebViewClient() {
 
     private var currentMainFrameHost: String? = null
-    private val httpsUpgradeMap = HashMap<String, String>()
-    private val upgradeAbandonedHosts = HashSet<String>()
 
     /** Applies tracking-param stripping, redirector unwrapping and HTTPS upgrading to a URL before it is loaded. */
     fun resolveNavigationUrl(url: String): String {
@@ -44,12 +43,7 @@ class BrowserWebViewClient(
         if (redirectorUnwrapEnabled) UrlSanitizer.unwrapRedirector(current)?.let { current = it }
         if (trackingParamStrippingEnabled) current = UrlSanitizer.stripTrackingParams(current)
         if (httpsUpgradeEnabled && current.startsWith("http://")) {
-            val host = runCatching { Uri.parse(current).host }.getOrNull()
-            if (host != null && host !in upgradeAbandonedHosts) {
-                val https = "https://" + current.removePrefix("http://")
-                httpsUpgradeMap[https] = current
-                current = https
-            }
+            current = "https://" + current.removePrefix("http://")
         }
         return current
     }
@@ -67,7 +61,7 @@ class BrowserWebViewClient(
             return WebResourceResponse("text/plain", "UTF-8", null)
         }
         val lower = urlStr.lowercase()
-        if (isVideoUrl(lower)) {
+        if (isVideoUrl(lower) && !isVideoAllowed(request.url.host)) {
             return WebResourceResponse("video/mp4", "UTF-8", null)
         }
         if (!request.isForMainFrame) {
@@ -105,11 +99,15 @@ class BrowserWebViewClient(
     // and Phase 19 de-AMP canonical-link redirect.
     override fun onPageFinished(view: WebView, url: String) {
         super.onPageFinished(view, url)
-        view.evaluateJavascript(VIDEO_BLOCK_JS, null)
+        if (!isVideoAllowed(currentMainFrameHost)) {
+            view.evaluateJavascript(VIDEO_BLOCK_JS, null)
+        }
 
         val shields = effectiveShields(currentMainFrameHost)
         if (shields.adBlockEnabled) {
-            val selectors = CosmeticSelectors.GLOBAL + cosmeticSelectors(currentMainFrameHost)
+            val selectors = CosmeticSelectors.GLOBAL +
+                CosmeticSelectors.COOKIE_BANNERS +
+                cosmeticSelectors(currentMainFrameHost)
             val js = CosmeticSelectors.buildHideJs(selectors)
             if (js.isNotEmpty()) view.evaluateJavascript(js, null)
         }
@@ -139,12 +137,8 @@ class BrowserWebViewClient(
         if (!request.isForMainFrame) return
 
         val failedUrl = request.url.toString()
-        val fallback = httpsUpgradeMap.remove(failedUrl)
-        if (fallback != null) {
-            runCatching { Uri.parse(failedUrl).host }.getOrNull()?.let { upgradeAbandonedHosts.add(it) }
-            onInsecureFallback(fallback)
-            view.post { view.loadUrl(fallback, navigationHeaders()) }
-            return
+        if (failedUrl.startsWith("https://")) {
+            onHttpsLoadFailed(failedUrl)
         }
         onReceivedError()
     }

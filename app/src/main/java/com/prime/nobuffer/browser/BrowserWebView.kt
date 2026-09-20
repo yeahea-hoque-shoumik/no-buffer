@@ -2,6 +2,8 @@ package com.prime.nobuffer.browser
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.view.View
+import android.webkit.CookieManager
 import android.webkit.JavascriptInterface
 import android.webkit.WebSettings
 import android.webkit.WebView
@@ -16,7 +18,9 @@ import kotlin.random.Random
 class BrowserWebView(context: Context) : WebView(context) {
 
     private var fingerprintScriptHandler: ScriptHandler? = null
+    private var incognitoScriptHandler: ScriptHandler? = null
     private val fingerprintSeed = Random.nextInt(1, Int.MAX_VALUE)
+    private var pickerBridgeAttached = false
 
     private var elementPickerCallback: ((String) -> Unit)? = null
 
@@ -25,7 +29,7 @@ class BrowserWebView(context: Context) : WebView(context) {
         fun onSelectorPicked(selector: String) {
             post {
                 val callback = elementPickerCallback
-                elementPickerCallback = null
+                detachElementPickerBridge()
                 evaluateJavascript(ELEMENT_PICKER_EXIT_JS, null)
                 callback?.invoke(selector)
             }
@@ -33,7 +37,6 @@ class BrowserWebView(context: Context) : WebView(context) {
     }
 
     init {
-        addJavascriptInterface(ElementPickerBridge(), "NoBufferElementPicker")
         settings.apply {
             javaScriptEnabled = true
             domStorageEnabled = true
@@ -61,6 +64,10 @@ class BrowserWebView(context: Context) : WebView(context) {
         WebView.startSafeBrowsing(context, null)
     }
 
+    fun applyForceDark(enabled: Boolean) {
+        WebViewAppearance.applyForceDark(this, enabled)
+    }
+
     /** Phase 18 — toggles the document-start anti-fingerprinting script for this WebView instance. */
     fun setFingerprintProtectionEnabled(enabled: Boolean) {
         if (!WebViewFeature.isFeatureSupported(WebViewFeature.DOCUMENT_START_SCRIPT)) return
@@ -76,15 +83,42 @@ class BrowserWebView(context: Context) : WebView(context) {
         }
     }
 
+    fun enableIncognitoIsolation() {
+        settings.cacheMode = WebSettings.LOAD_NO_CACHE
+        importantForAutofill = View.IMPORTANT_FOR_AUTOFILL_NO
+        CookieManager.getInstance().setAcceptThirdPartyCookies(this, false)
+        if (WebViewFeature.isFeatureSupported(WebViewFeature.SAFE_BROWSING_ENABLE)) {
+            WebSettingsCompat.setSafeBrowsingEnabled(settings, false)
+        }
+        if (!WebViewFeature.isFeatureSupported(WebViewFeature.DOCUMENT_START_SCRIPT)) return
+        if (incognitoScriptHandler == null) {
+            incognitoScriptHandler = WebViewCompat.addDocumentStartJavaScript(
+                this, IncognitoIsolationJs.SCRIPT, setOf("*")
+            )
+        }
+    }
+
     /** Phase 17 — enters tap-to-block picker mode; [onSelectorPicked] fires once with the tapped element's CSS selector. */
     fun startElementPicker(onSelectorPicked: (String) -> Unit) {
         elementPickerCallback = onSelectorPicked
+        if (!pickerBridgeAttached) {
+            addJavascriptInterface(ElementPickerBridge(), "NoBufferElementPicker")
+            pickerBridgeAttached = true
+        }
         evaluateJavascript(ELEMENT_PICKER_ENTER_JS, null)
     }
 
     fun stopElementPicker() {
-        elementPickerCallback = null
+        detachElementPickerBridge()
         evaluateJavascript(ELEMENT_PICKER_EXIT_JS, null)
+    }
+
+    private fun detachElementPickerBridge() {
+        elementPickerCallback = null
+        if (pickerBridgeAttached) {
+            removeJavascriptInterface("NoBufferElementPicker")
+            pickerBridgeAttached = false
+        }
     }
 
     companion object {

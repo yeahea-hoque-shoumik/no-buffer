@@ -176,6 +176,7 @@ fun BrowserScreen(
                 url = webLoadUrl,
                 modifier = Modifier.fillMaxSize(),
                 existingWebView = webView,
+                isIncognito = isIncognito,
                 shields = shields,
                 onRequestBlocked = onRequestBlocked,
                 onWebViewReady = { webViewRef = it; onWebViewReady(it) },

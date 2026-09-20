@@ -9,7 +9,8 @@ data class WebShieldsContext(
     val httpsUpgradeEnabled: Boolean = true,
     val trackingParamStrippingEnabled: Boolean = true,
     val redirectorUnwrapEnabled: Boolean = true,
-    val deAmpEnabled: Boolean = true
+    val deAmpEnabled: Boolean = true,
+    val isVideoAllowed: (host: String?) -> Boolean = { false }
 ) {
     companion object {
         fun disabled() = WebShieldsContext(

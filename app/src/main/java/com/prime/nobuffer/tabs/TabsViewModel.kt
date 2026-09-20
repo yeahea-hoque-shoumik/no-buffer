@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -22,11 +23,14 @@ const val TAB_CLOSE_UNDO_WINDOW_MS = 5000L
 
 class TabsViewModel(application: Application) : AndroidViewModel(application) {
 
+    private val app = application as BrowserApplication
     private val tabManager = TabManager(application)
-    private val repository = (application as BrowserApplication).repository
+    private val repository = app.repository
+    private val settingsRepository = app.settingsRepository
 
     val tabs: StateFlow<List<BrowserTab>> = tabManager.tabs
     val activeIndex: StateFlow<Int> = tabManager.activeIndex
+    val recentlyClosed: StateFlow<List<RecentlyClosedTab>> = tabManager.recentlyClosed
 
     val activeTabFlow: StateFlow<BrowserTab?> = combine(tabs, activeIndex) { list, index ->
         list.getOrNull(index)
@@ -34,6 +38,9 @@ class TabsViewModel(application: Application) : AndroidViewModel(application) {
 
     init {
         viewModelScope.launch {
+            val closedJson = settingsRepository.recentlyClosedJson.first()
+            tabManager.replaceRecentlyClosed(RecentlyClosedStore.fromJson(closedJson))
+
             val saved = repository.getSavedTabs()
             if (saved.isNotEmpty()) {
                 val restored = saved.map { entity ->
@@ -43,6 +50,10 @@ class TabsViewModel(application: Application) : AndroidViewModel(application) {
                 tabManager.restoreTabs(restored, activeIndex)
             } else if (tabManager.tabs.value.isEmpty()) {
                 tabManager.newTab("about:blank")
+            }
+
+            tabManager.recentlyClosed.collect { list ->
+                settingsRepository.setRecentlyClosedJson(RecentlyClosedStore.toJson(list))
             }
         }
     }
@@ -90,6 +101,13 @@ class TabsViewModel(application: Application) : AndroidViewModel(application) {
     fun attachWebView(tabId: String, webView: BrowserWebView) = tabManager.attachWebView(tabId, webView)
 
     fun incrementBlockedCount(tabId: String) = tabManager.incrementBlockedCount(tabId)
+
+    fun updateDesktopSite(tabId: String, enabled: Boolean) = tabManager.updateDesktopSite(tabId, enabled)
+
+    fun restoreRecentlyClosed(): BrowserTab? {
+        val snapshot = tabManager.popRecentlyClosed() ?: return null
+        return tabManager.newTab(snapshot.url, isIncognito = snapshot.isIncognito)
+    }
 
     fun persistTabs() {
         val currentTabs = tabManager.tabs.value

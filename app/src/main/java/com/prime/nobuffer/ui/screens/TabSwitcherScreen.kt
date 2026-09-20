@@ -24,6 +24,7 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -34,6 +35,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
@@ -75,8 +77,16 @@ fun TabSwitcherScreen(
     var showIncognito by remember {
         mutableStateOf(tabs.firstOrNull { it.id == activeTabId }?.isIncognito == true)
     }
+    var searchQuery by remember { mutableStateOf("") }
     val colors = if (showIncognito) DarkCardColors else Orion.colors
-    val visibleTabs = if (showIncognito) incognitoTabs else regularTabs
+    val sectionTabs = if (showIncognito) incognitoTabs else regularTabs
+    val visibleTabs = remember(sectionTabs, searchQuery) {
+        val q = searchQuery.trim()
+        if (q.isEmpty()) sectionTabs
+        else sectionTabs.filter { tab ->
+            tab.title.contains(q, ignoreCase = true) || tab.url.contains(q, ignoreCase = true)
+        }
+    }
 
     Box(modifier = modifier.fillMaxSize()) {
     Column(
@@ -110,6 +120,45 @@ fun TabSwitcherScreen(
                 modifier = Modifier.weight(1f),
                 onClick = { showIncognito = true }
             )
+        }
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 16.dp, end = 16.dp, top = 10.dp)
+                .clip(RoundedCornerShape(18.dp))
+                .background(colors.surface)
+                .border(1.dp, colors.border, RoundedCornerShape(18.dp))
+                .padding(horizontal = 14.dp, vertical = 10.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text("⌕", color = colors.textMid, fontSize = 15.sp)
+            Box(modifier = Modifier.size(8.dp))
+            BasicTextField(
+                value = searchQuery,
+                onValueChange = { searchQuery = it },
+                singleLine = true,
+                textStyle = TextStyle(color = colors.text, fontSize = 14.sp),
+                modifier = Modifier.weight(1f),
+                decorationBox = { inner ->
+                    if (searchQuery.isEmpty()) {
+                        Text("Search tabs", color = colors.textDim, fontSize = 14.sp)
+                    }
+                    inner()
+                }
+            )
+            if (searchQuery.isNotEmpty()) {
+                Text(
+                    text = "✕",
+                    color = colors.textDim,
+                    fontSize = 14.sp,
+                    modifier = Modifier.clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null,
+                        onClick = { searchQuery = "" }
+                    )
+                )
+            }
         }
 
         Row(
@@ -149,7 +198,11 @@ fun TabSwitcherScreen(
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = if (showIncognito) "No incognito tabs" else "No tabs",
+                    text = when {
+                        searchQuery.isNotBlank() -> "No matching tabs"
+                        showIncognito -> "No incognito tabs"
+                        else -> "No tabs"
+                    },
                     color = colors.textDim,
                     fontSize = 14.sp
                 )
@@ -171,12 +224,14 @@ fun TabSwitcherScreen(
                         modifier = Modifier.padding(6.dp)
                     )
                 }
-                item {
-                    NewTabSlot(
-                        forceDark = showIncognito,
-                        onClick = { if (showIncognito) onNewPrivateTab() else onNewTab() },
-                        modifier = Modifier.padding(6.dp)
-                    )
+                if (searchQuery.isBlank()) {
+                    item {
+                        NewTabSlot(
+                            forceDark = showIncognito,
+                            onClick = { if (showIncognito) onNewPrivateTab() else onNewTab() },
+                            modifier = Modifier.padding(6.dp)
+                        )
+                    }
                 }
             }
         }

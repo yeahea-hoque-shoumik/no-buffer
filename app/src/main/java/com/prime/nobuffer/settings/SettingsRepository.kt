@@ -17,15 +17,15 @@ enum class DarkModeOption { SYSTEM, LIGHT, DARK }
 enum class ShieldsMode { STANDARD, AGGRESSIVE, DISABLED }
 
 data class BrowserSettings(
-    val searchEngine: String = "Google",
+    val searchEngine: String = "DuckDuckGo",
     val homepageUrl: String = "",
     val downloadsLocation: String = "Downloads",
     val javaScriptEnabled: Boolean = true,
-    val adBlockerEnabled: Boolean = false,
-    val doNotTrackEnabled: Boolean = false,
-    val blockThirdPartyCookies: Boolean = false,
-    val safeBrowsingEnabled: Boolean = true,
-    val searchSuggestionsEnabled: Boolean = true,
+    val adBlockerEnabled: Boolean = true,
+    val doNotTrackEnabled: Boolean = true,
+    val blockThirdPartyCookies: Boolean = true,
+    val safeBrowsingEnabled: Boolean = false,
+    val searchSuggestionsEnabled: Boolean = false,
     val textZoom: Int = 100,
     val desktopSiteEnabled: Boolean = false,
     val darkMode: DarkModeOption = DarkModeOption.SYSTEM,
@@ -38,7 +38,10 @@ data class BrowserSettings(
     val antiFingerprintingEnabled: Boolean = true,
     val shieldsMode: ShieldsMode = ShieldsMode.STANDARD,
     /** -1 means "ask every time" (no persisted grant is written). */
-    val permissionGrantTtlHours: Int = 24
+    val permissionGrantTtlHours: Int = 24,
+    val forceDarkPages: Boolean = true,
+    /** JSON array of `{name, searchUrl, suggestUrl?}`. Selected engine name is [searchEngine]. */
+    val customSearchEnginesJson: String = ""
 )
 
 class SettingsRepository(private val context: Context) {
@@ -65,19 +68,22 @@ class SettingsRepository(private val context: Context) {
         val ANTI_FINGERPRINTING = booleanPreferencesKey("anti_fingerprinting")
         val SHIELDS_MODE = stringPreferencesKey("shields_mode")
         val PERMISSION_GRANT_TTL_HOURS = intPreferencesKey("permission_grant_ttl_hours")
+        val FORCE_DARK_PAGES = booleanPreferencesKey("force_dark_pages")
+        val CUSTOM_SEARCH_ENGINES_JSON = stringPreferencesKey("custom_search_engines_json")
+        val RECENTLY_CLOSED_JSON = stringPreferencesKey("recently_closed_json")
     }
 
     val settings: Flow<BrowserSettings> = context.dataStore.data.map { prefs ->
         BrowserSettings(
-            searchEngine = prefs[Keys.SEARCH_ENGINE] ?: "Google",
+            searchEngine = prefs[Keys.SEARCH_ENGINE] ?: "DuckDuckGo",
             homepageUrl = prefs[Keys.HOMEPAGE_URL] ?: "",
             downloadsLocation = prefs[Keys.DOWNLOADS_LOCATION] ?: "Downloads",
             javaScriptEnabled = prefs[Keys.JS_ENABLED] ?: true,
-            adBlockerEnabled = prefs[Keys.AD_BLOCKER] ?: false,
-            doNotTrackEnabled = prefs[Keys.DNT] ?: false,
-            blockThirdPartyCookies = prefs[Keys.BLOCK_THIRD_PARTY_COOKIES] ?: false,
-            safeBrowsingEnabled = prefs[Keys.SAFE_BROWSING] ?: true,
-            searchSuggestionsEnabled = prefs[Keys.SEARCH_SUGGESTIONS] ?: true,
+            adBlockerEnabled = prefs[Keys.AD_BLOCKER] ?: true,
+            doNotTrackEnabled = prefs[Keys.DNT] ?: true,
+            blockThirdPartyCookies = prefs[Keys.BLOCK_THIRD_PARTY_COOKIES] ?: true,
+            safeBrowsingEnabled = prefs[Keys.SAFE_BROWSING] ?: false,
+            searchSuggestionsEnabled = false,
             textZoom = prefs[Keys.TEXT_ZOOM] ?: 100,
             desktopSiteEnabled = prefs[Keys.DESKTOP_SITE] ?: false,
             darkMode = prefs[Keys.DARK_MODE]?.let { runCatching { DarkModeOption.valueOf(it) }.getOrNull() } ?: DarkModeOption.SYSTEM,
@@ -89,8 +95,14 @@ class SettingsRepository(private val context: Context) {
             autofillEnabled = prefs[Keys.AUTOFILL_ENABLED] ?: true,
             antiFingerprintingEnabled = prefs[Keys.ANTI_FINGERPRINTING] ?: true,
             shieldsMode = prefs[Keys.SHIELDS_MODE]?.let { runCatching { ShieldsMode.valueOf(it) }.getOrNull() } ?: ShieldsMode.STANDARD,
-            permissionGrantTtlHours = prefs[Keys.PERMISSION_GRANT_TTL_HOURS] ?: 24
+            permissionGrantTtlHours = prefs[Keys.PERMISSION_GRANT_TTL_HOURS] ?: 24,
+            forceDarkPages = prefs[Keys.FORCE_DARK_PAGES] ?: true,
+            customSearchEnginesJson = prefs[Keys.CUSTOM_SEARCH_ENGINES_JSON] ?: ""
         )
+    }
+
+    val recentlyClosedJson: Flow<String> = context.dataStore.data.map { prefs ->
+        prefs[Keys.RECENTLY_CLOSED_JSON] ?: "[]"
     }
 
     suspend fun setSearchEngine(value: String) = context.dataStore.edit { it[Keys.SEARCH_ENGINE] = value }
@@ -114,4 +126,7 @@ class SettingsRepository(private val context: Context) {
     suspend fun setAntiFingerprintingEnabled(value: Boolean) = context.dataStore.edit { it[Keys.ANTI_FINGERPRINTING] = value }
     suspend fun setShieldsMode(value: ShieldsMode) = context.dataStore.edit { it[Keys.SHIELDS_MODE] = value.name }
     suspend fun setPermissionGrantTtlHours(value: Int) = context.dataStore.edit { it[Keys.PERMISSION_GRANT_TTL_HOURS] = value }
+    suspend fun setForceDarkPages(value: Boolean) = context.dataStore.edit { it[Keys.FORCE_DARK_PAGES] = value }
+    suspend fun setCustomSearchEnginesJson(value: String) = context.dataStore.edit { it[Keys.CUSTOM_SEARCH_ENGINES_JSON] = value }
+    suspend fun setRecentlyClosedJson(value: String) = context.dataStore.edit { it[Keys.RECENTLY_CLOSED_JSON] = value }
 }
