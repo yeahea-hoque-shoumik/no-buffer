@@ -1,5 +1,6 @@
 package com.prime.nobuffer.data
 
+import com.prime.nobuffer.data.entity.BlockedSite
 import com.prime.nobuffer.data.entity.Bookmark
 import com.prime.nobuffer.data.entity.CustomFilterRule
 import com.prime.nobuffer.data.entity.HistoryEntry
@@ -103,4 +104,16 @@ class BrowserRepository(private val db: BrowserDatabase) {
 
     suspend fun purgeExpiredPermissionGrants() =
         db.sitePermissionGrantDao().deleteExpired(System.currentTimeMillis())
+
+    // --- Locked sites ---
+
+    suspend fun upsertBlockedSite(site: BlockedSite) = db.blockedSiteDao().upsert(site)
+
+    suspend fun deleteBlockedSite(host: String) = db.blockedSiteDao().delete(host)
+
+    suspend fun clearBlockedSites() = db.blockedSiteDao().clearAll()
+
+    fun observeBlockedSites(): Flow<List<BlockedSite>> = db.blockedSiteDao().observeAll()
+
+    suspend fun getBlockedHosts(): List<String> = db.blockedSiteDao().getHosts()
 }

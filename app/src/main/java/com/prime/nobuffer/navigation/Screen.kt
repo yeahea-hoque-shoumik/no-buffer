@@ -12,4 +12,5 @@ sealed class Screen(val route: String) {
     object Settings : Screen("settings")
     object SettingsPrivacy : Screen("settings/privacy")
     object SettingsSite : Screen("settings/site")
+    object SettingsBlockedSites : Screen("settings/blocked_sites")
 }

@@ -69,6 +69,7 @@ import com.prime.nobuffer.ui.screens.BrowserScreen
 import com.prime.nobuffer.ui.screens.DownloadsScreen
 import com.prime.nobuffer.ui.screens.HistoryScreen
 import com.prime.nobuffer.ui.screens.OmniboxScreen
+import com.prime.nobuffer.ui.screens.SettingsBlockedSitesScreen
 import com.prime.nobuffer.ui.screens.SettingsPrivacyScreen
 import com.prime.nobuffer.ui.screens.SettingsScreen
 import com.prime.nobuffer.ui.screens.SettingsSiteScreen
@@ -389,11 +390,16 @@ fun BrowserNavHost(
                 menuVisible = false
             },
             onShare = {
-                val shareIntent = Intent(Intent.ACTION_SEND).apply {
-                    type = "text/plain"
-                    putExtra(Intent.EXTRA_TEXT, activeTab?.url.orEmpty())
+                val shareUrl = activeTab?.url.orEmpty()
+                if (app.siteBlocker.isUrlBlocked(shareUrl)) {
+                    Toast.makeText(context, "Blocked sites can't be shared", Toast.LENGTH_SHORT).show()
+                } else {
+                    val shareIntent = Intent(Intent.ACTION_SEND).apply {
+                        type = "text/plain"
+                        putExtra(Intent.EXTRA_TEXT, shareUrl)
+                    }
+                    context.startActivity(Intent.createChooser(shareIntent, null))
                 }
-                context.startActivity(Intent.createChooser(shareIntent, null))
                 menuVisible = false
             },
             onPrint = {
@@ -401,7 +407,12 @@ fun BrowserNavHost(
                 menuVisible = false
             },
             onInstall = {
-                activeTab?.let { onInstallShortcut(it.url, it.title) }
+                val tab = activeTab
+                if (tab != null && app.siteBlocker.isUrlBlocked(tab.url)) {
+                    Toast.makeText(context, "Blocked sites can't be added to the home screen", Toast.LENGTH_SHORT).show()
+                } else {
+                    tab?.let { onInstallShortcut(it.url, it.title) }
+                }
                 menuVisible = false
             },
             onNewTab = {
@@ -608,7 +619,8 @@ fun BrowserNavHost(
         composable(Screen.Settings.route) {
             SettingsScreen(
                 onOpenPrivacy = { navController.navigate(Screen.SettingsPrivacy.route) },
-                onOpenSite = { navController.navigate(Screen.SettingsSite.route) }
+                onOpenSite = { navController.navigate(Screen.SettingsSite.route) },
+                onOpenBlockedSites = { navController.navigate(Screen.SettingsBlockedSites.route) }
             )
         }
         composable(Screen.SettingsPrivacy.route) {
@@ -616,6 +628,9 @@ fun BrowserNavHost(
         }
         composable(Screen.SettingsSite.route) {
             SettingsSiteScreen()
+        }
+        composable(Screen.SettingsBlockedSites.route) {
+            SettingsBlockedSitesScreen()
         }
     }
 }

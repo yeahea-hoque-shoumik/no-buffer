@@ -63,6 +63,7 @@ import com.prime.nobuffer.ui.theme.Orion
 fun SettingsScreen(
     onOpenPrivacy: () -> Unit,
     onOpenSite: () -> Unit,
+    onOpenBlockedSites: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: SettingsViewModel = viewModel(),
     historyViewModel: HistoryViewModel = viewModel()
@@ -160,6 +161,7 @@ fun SettingsScreen(
                 ToggleRow(icon = "🍪", label = "Block 3rd-party Cookies", checked = settings.blockThirdPartyCookies) { viewModel.setBlockThirdPartyCookies(it) }
                 ToggleRow(icon = "🕵️", label = "Anti-Fingerprinting", checked = settings.antiFingerprintingEnabled) { viewModel.setAntiFingerprintingEnabled(it) }
                 SettingsRow(icon = "🔒", label = "Privacy & Security", value = "", onClick = onOpenPrivacy)
+                SettingsRow(icon = "🚫", label = "Blocked Sites", value = "", onClick = onOpenBlockedSites)
                 SettingsRow(icon = "🌐", label = "Site Settings", value = "", onClick = onOpenSite)
                 SettingsRow(icon = "🧹", label = "Clear Browsing Data", value = "", showDivider = false, onClick = { showClearDataDialog = true })
             }

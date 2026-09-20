@@ -2,6 +2,10 @@ package com.prime.nobuffer
 
 import android.app.Application
 import androidx.room.Room
+import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
+import com.prime.nobuffer.blocklist.LockPasswordStore
+import com.prime.nobuffer.blocklist.SiteBlocker
 import com.prime.nobuffer.data.BrowserDatabase
 import com.prime.nobuffer.data.BrowserRepository
 import com.prime.nobuffer.settings.SettingsRepository
@@ -19,6 +23,7 @@ class BrowserApplication : Application() {
 
     val database: BrowserDatabase by lazy {
         Room.databaseBuilder(this, BrowserDatabase::class.java, "browser.db")
+            .addMigrations(MIGRATION_3_4)
             .fallbackToDestructiveMigration(dropAllTables = true)
             .build()
     }
@@ -43,9 +48,26 @@ class BrowserApplication : Application() {
         ShieldsResolver(settingsRepository, repository, applicationScope)
     }
 
+    val siteBlocker: SiteBlocker by lazy {
+        SiteBlocker(repository, LockPasswordStore(this), applicationScope)
+    }
+
     override fun onCreate() {
         super.onCreate()
+        siteBlocker
         // Phase 21: purge expired per-site permission grants on cold start.
         applicationScope.launch { repository.purgeExpiredPermissionGrants() }
+    }
+
+    companion object {
+        private val MIGRATION_3_4 = object : Migration(3, 4) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    "CREATE TABLE IF NOT EXISTS blocked_sites (" +
+                        "host TEXT NOT NULL PRIMARY KEY, " +
+                        "createdAt INTEGER NOT NULL)"
+                )
+            }
+        }
     }
 }

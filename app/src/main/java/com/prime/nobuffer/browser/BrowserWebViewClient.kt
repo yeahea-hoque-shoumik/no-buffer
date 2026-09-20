@@ -29,7 +29,9 @@ class BrowserWebViewClient(
     private val redirectorUnwrapEnabled: Boolean = true,
     private val deAmpEnabled: Boolean = true,
     private val onInsecureFallback: (url: String) -> Unit = {},
-    private val navigationHeaders: () -> Map<String, String> = { emptyMap() }
+    private val navigationHeaders: () -> Map<String, String> = { emptyMap() },
+    private val isSiteLocked: (String) -> Boolean = { false },
+    private val onSiteLocked: (String) -> Unit = {}
 ) : WebViewClient() {
 
     private var currentMainFrameHost: String? = null
@@ -60,6 +62,10 @@ class BrowserWebViewClient(
         request: WebResourceRequest
     ): WebResourceResponse? {
         val urlStr = request.url.toString()
+        if (isSiteLocked(urlStr)) {
+            if (request.isForMainFrame) view.post { onSiteLocked(urlStr) }
+            return WebResourceResponse("text/plain", "UTF-8", null)
+        }
         val lower = urlStr.lowercase()
         if (isVideoUrl(lower)) {
             return WebResourceResponse("video/mp4", "UTF-8", null)
@@ -80,6 +86,10 @@ class BrowserWebViewClient(
         if (!request.isForMainFrame) return false
         val original = request.url.toString()
         val resolved = resolveNavigationUrl(original)
+        if (isSiteLocked(resolved)) {
+            onSiteLocked(resolved)
+            return true
+        }
         if (resolved == original) return false
         view.loadUrl(resolved, navigationHeaders())
         return true

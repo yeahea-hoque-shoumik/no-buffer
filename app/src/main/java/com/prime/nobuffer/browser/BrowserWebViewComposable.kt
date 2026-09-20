@@ -48,7 +48,9 @@ fun BrowserWebViewComposable(
     onWebViewReady: (BrowserWebView) -> Unit = {},
     onShowFileChooser: (ValueCallback<Array<Uri>>, WebChromeClient.FileChooserParams) -> Boolean = { _, _ -> false },
     onPermissionRequested: (PermissionRequest) -> Unit = { it.deny() },
-    onGeolocationPermissionRequested: (String, GeolocationPermissions.Callback) -> Unit = { _, callback -> callback.invoke(null, false, false) }
+    onGeolocationPermissionRequested: (String, GeolocationPermissions.Callback) -> Unit = { _, callback -> callback.invoke(null, false, false) },
+    isSiteLocked: (String) -> Boolean = { false },
+    onSiteLocked: (String) -> Unit = {}
 ) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -82,7 +84,9 @@ fun BrowserWebViewComposable(
                 onInsecureFallback = { fallbackUrl ->
                     Toast.makeText(context, "Site doesn't support HTTPS — loaded over HTTP", Toast.LENGTH_SHORT).show()
                 },
-                navigationHeaders = shields.navigationHeaders
+                navigationHeaders = shields.navigationHeaders,
+                isSiteLocked = isSiteLocked,
+                onSiteLocked = onSiteLocked
             )
             webChromeClient = BrowserWebChromeClient(
                 onProgressChanged = onProgressChanged,
@@ -140,7 +144,11 @@ fun BrowserWebViewComposable(
                 if (url.isNotBlank() && webView.url != url) {
                     val client = webView.webViewClient as? BrowserWebViewClient
                     val resolved = client?.resolveNavigationUrl(url) ?: url
-                    webView.loadUrl(resolved, client?.currentNavigationHeaders() ?: emptyMap())
+                    if (isSiteLocked(resolved)) {
+                        onSiteLocked(resolved)
+                    } else {
+                        webView.loadUrl(resolved, client?.currentNavigationHeaders() ?: emptyMap())
+                    }
                 }
             }
         )

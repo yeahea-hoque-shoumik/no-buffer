@@ -24,7 +24,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.prime.nobuffer.BrowserApplication
 import com.prime.nobuffer.browser.BrowserWebView
 import com.prime.nobuffer.browser.BrowserWebViewComposable
 import com.prime.nobuffer.shields.WebShieldsContext
@@ -67,9 +70,13 @@ fun BrowserScreen(
     modifier: Modifier = Modifier
 ) {
     val colors = Orion.colors
+    val context = LocalContext.current
+    val siteBlocker = (context.applicationContext as BrowserApplication).siteBlocker
+    val blockedHosts by siteBlocker.blockedHosts.collectAsStateWithLifecycle()
 
     var webViewRef by remember { mutableStateOf<BrowserWebView?>(null) }
     var currentUrl by remember(startUrl) { mutableStateOf(startUrl) }
+    var lockedUrl by remember { mutableStateOf<String?>(null) }
     var progress by remember { mutableIntStateOf(0) }
     var canGoBack by remember { mutableStateOf(false) }
     var findInPageVisible by remember { mutableStateOf(false) }
@@ -84,7 +91,19 @@ fun BrowserScreen(
         }
     }
 
-    val isHome = currentUrl.isBlank() || currentUrl == "about:blank" || currentUrl == "about:newtab"
+    LaunchedEffect(startUrl, blockedHosts) {
+        lockedUrl = startUrl.takeIf { siteBlocker.isUrlBlocked(it) }
+    }
+
+    val activeLock = lockedUrl
+    val isLocked = activeLock != null && siteBlocker.isUrlBlocked(activeLock)
+    val displayUrl = activeLock ?: currentUrl
+    val isHome = !isLocked && (currentUrl.isBlank() || currentUrl == "about:blank" || currentUrl == "about:newtab")
+    val webLoadUrl = if (isLocked) {
+        webViewRef?.url?.takeIf { loaded -> loaded.isNotBlank() && !siteBlocker.isUrlBlocked(loaded) } ?: "about:blank"
+    } else {
+        startUrl
+    }
 
     LaunchedEffect(findInPageSignal) {
         if (findInPageSignal > 0) findInPageVisible = true
@@ -98,10 +117,15 @@ fun BrowserScreen(
     BackHandler(enabled = !findInPageVisible && !isHome && canGoBack) {
         webViewRef?.goBack()
     }
-    BackHandler(enabled = !findInPageVisible && !isHome && !canGoBack) {
+    BackHandler(enabled = isLocked) {
+        lockedUrl = null
+        currentUrl = "about:blank"
         onUrlChanged("about:blank")
     }
-    BackHandler(enabled = !findInPageVisible && isHome) {
+    BackHandler(enabled = !findInPageVisible && !isLocked && !isHome && !canGoBack) {
+        onUrlChanged("about:blank")
+    }
+    BackHandler(enabled = !findInPageVisible && !isLocked && isHome) {
         onExhausted()
     }
     BackHandler(enabled = elementPickerActive) {
@@ -115,11 +139,19 @@ fun BrowserScreen(
     ) {
         StatusBar()
         PillBar(
-            url = currentUrl,
-            showBack = !isHome && canGoBack,
+            url = displayUrl,
+            showBack = isLocked || (!isHome && canGoBack),
             tabCount = tabCount,
             blockedCount = blockedCount,
-            onBackClick = { webViewRef?.goBack() },
+            onBackClick = {
+                if (isLocked) {
+                    lockedUrl = null
+                    currentUrl = "about:blank"
+                    onUrlChanged("about:blank")
+                } else {
+                    webViewRef?.goBack()
+                }
+            },
             onFieldClick = onOpenOmnibox,
             onTabsClick = onOpenTabSwitcher,
             onMenuClick = onOpenMenu,
@@ -141,7 +173,7 @@ fun BrowserScreen(
 
         Box(modifier = Modifier.weight(1f)) {
             BrowserWebViewComposable(
-                url = startUrl,
+                url = webLoadUrl,
                 modifier = Modifier.fillMaxSize(),
                 existingWebView = webView,
                 shields = shields,
@@ -149,23 +181,54 @@ fun BrowserScreen(
                 onWebViewReady = { webViewRef = it; onWebViewReady(it) },
                 onProgressChanged = { progress = it },
                 onPageStarted = { url ->
-                    currentUrl = url
-                    onUrlChanged(url)
-                    canGoBack = webViewRef?.canGoBack() ?: false
+                    val attempted = lockedUrl
+                    if (attempted != null && siteBlocker.isUrlBlocked(attempted) && !siteBlocker.isUrlBlocked(url)) {
+                        // Keep the lock overlay; don't let about:blank from the unused WebView steal the URL.
+                    } else {
+                        currentUrl = url
+                        onUrlChanged(url)
+                        canGoBack = webViewRef?.canGoBack() ?: false
+                    }
                 },
                 onPageFinished = { url, title ->
-                    currentUrl = url
-                    onUrlChanged(url)
-                    title?.let(onTitleChanged)
-                    canGoBack = webViewRef?.canGoBack() ?: false
+                    val attempted = lockedUrl
+                    if (attempted != null && siteBlocker.isUrlBlocked(attempted) && !siteBlocker.isUrlBlocked(url)) {
+                        // same as onPageStarted
+                    } else {
+                        currentUrl = url
+                        onUrlChanged(url)
+                        title?.let(onTitleChanged)
+                        canGoBack = webViewRef?.canGoBack() ?: false
+                    }
                 },
                 onTitleChanged = onTitleChanged,
                 onShowFileChooser = onShowFileChooser,
                 onPermissionRequested = onPermissionRequested,
-                onGeolocationPermissionRequested = onGeolocationPermissionRequested
+                onGeolocationPermissionRequested = onGeolocationPermissionRequested,
+                isSiteLocked = { siteBlocker.isUrlBlocked(it) },
+                onSiteLocked = { url ->
+                    lockedUrl = url
+                    currentUrl = url
+                    onUrlChanged(url)
+                }
             )
 
-            if (isHome) {
+            if (isLocked) {
+                SiteLockedOverlay(
+                    url = lockedUrl ?: currentUrl,
+                    onUnlocked = {
+                        val target = lockedUrl ?: currentUrl
+                        lockedUrl = null
+                        webViewRef?.loadUrl(target)
+                    },
+                    onGoHome = {
+                        lockedUrl = null
+                        currentUrl = "about:blank"
+                        onUrlChanged("about:blank")
+                    },
+                    modifier = Modifier.fillMaxSize()
+                )
+            } else if (isHome) {
                 if (isIncognito) {
                     IncognitoNewTabContent(modifier = Modifier.fillMaxSize())
                 } else {

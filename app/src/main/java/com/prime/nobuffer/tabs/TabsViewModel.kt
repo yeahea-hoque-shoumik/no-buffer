@@ -113,7 +113,10 @@ class TabsViewModel(application: Application) : AndroidViewModel(application) {
 
         if (title != null) {
             val tab = tabManager.tabs.value.firstOrNull { it.id == tabId }
-            if (tab != null && !tab.isIncognito && tab.url.isNotBlank() && tab.url != "about:blank" && title.isNotBlank()) {
+            val app = getApplication<BrowserApplication>()
+            if (tab != null && !tab.isIncognito && tab.url.isNotBlank() && tab.url != "about:blank" &&
+                title.isNotBlank() && !app.siteBlocker.isUrlBlocked(tab.url)
+            ) {
                 viewModelScope.launch {
                     repository.insertHistory(HistoryEntry(url = tab.url, title = title))
                 }
