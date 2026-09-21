@@ -72,6 +72,9 @@ dependencies {
     // Lifecycle Compose (LocalLifecycleOwner)
     implementation(libs.androidx.lifecycle.compose)
 
+    implementation(libs.androidx.biometric)
+    implementation(libs.google.mlkit.barcode.scanning)
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

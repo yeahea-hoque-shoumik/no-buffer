@@ -2,6 +2,9 @@ package com.prime.nobuffer
 
 import android.Manifest
 import android.app.Activity
+import android.app.SearchManager
+import android.content.ClipData
+import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -19,6 +22,7 @@ import android.webkit.GeolocationPermissions
 import android.webkit.PermissionRequest
 import android.webkit.ValueCallback
 import android.webkit.WebChromeClient
+import android.webkit.WebView
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -56,23 +60,34 @@ import androidx.navigation.navArgument
 import androidx.webkit.WebSettingsCompat
 import androidx.webkit.WebViewFeature
 import com.prime.nobuffer.browser.BrowserWebView
+import com.prime.nobuffer.browser.BrowserWebViewClient
+import com.prime.nobuffer.browser.WebViewAppearance
 import com.prime.nobuffer.data.entity.PermissionType
 import com.prime.nobuffer.navigation.Screen
 import com.prime.nobuffer.newtab.QuickAccessViewModel
 import com.prime.nobuffer.settings.DarkModeOption
 import com.prime.nobuffer.settings.SettingsViewModel
+import com.prime.nobuffer.shields.NavigationHeaders
 import com.prime.nobuffer.shields.WebShieldsContext
+import com.prime.nobuffer.tabs.BrowserTab
 import com.prime.nobuffer.tabs.TabsViewModel
+import com.prime.nobuffer.ui.screens.AppLockGate
 import com.prime.nobuffer.ui.screens.BookmarksScreen
 import com.prime.nobuffer.ui.screens.BrowserMenuBottomSheet
 import com.prime.nobuffer.ui.screens.BrowserScreen
+import com.prime.nobuffer.ui.screens.CookieInspectorScreen
 import com.prime.nobuffer.ui.screens.DownloadsScreen
 import com.prime.nobuffer.ui.screens.HistoryScreen
 import com.prime.nobuffer.ui.screens.OmniboxScreen
+import com.prime.nobuffer.ui.screens.ReaderArticle
+import com.prime.nobuffer.ui.screens.ReaderMode
+import com.prime.nobuffer.ui.screens.ReaderModeScreen
+import com.prime.nobuffer.ui.screens.SettingsBlockedSitesScreen
 import com.prime.nobuffer.ui.screens.SettingsPrivacyScreen
 import com.prime.nobuffer.ui.screens.SettingsScreen
 import com.prime.nobuffer.ui.screens.SettingsSiteScreen
 import com.prime.nobuffer.ui.screens.ShieldsBottomSheet
+import com.prime.nobuffer.ui.screens.SiteInfoBottomSheet
 import com.prime.nobuffer.ui.screens.TabSwitcherScreen
 import com.prime.nobuffer.ui.theme.BrowserTheme
 import com.prime.nobuffer.ui.theme.IncognitoTheme
@@ -81,6 +96,10 @@ import java.net.URLDecoder
 import java.net.URLEncoder
 
 class MainActivity : ComponentActivity() {
+
+    private var pendingOpenUrl by mutableStateOf<String?>(null)
+    private var pendingOmniboxQuery by mutableStateOf<String?>(null)
+    private var appLocked by mutableStateOf(false)
 
     private var filePathCallback: ValueCallback<Array<Uri>>? = null
     private var pendingPermissionRequest: PermissionRequest? = null
@@ -140,6 +159,8 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        if (savedInstanceState == null) handleIncomingIntent(intent)
+        appLocked = (application as BrowserApplication).appLockController.shouldLock()
         enableEdgeToEdge()
         setContent {
             val settingsViewModel: SettingsViewModel = viewModel()
@@ -151,7 +172,19 @@ class MainActivity : ComponentActivity() {
                 DarkModeOption.DARK -> true
             }
             BrowserTheme(darkTheme = darkTheme) {
+                if (appLocked) {
+                    AppLockGate(
+                        controller = (application as BrowserApplication).appLockController,
+                        onUnlocked = { appLocked = false }
+                    )
+                    return@BrowserTheme
+                }
                 BrowserNavHost(
+                    pendingOpenUrl = pendingOpenUrl,
+                    onConsumePendingOpenUrl = { pendingOpenUrl = null },
+                    pendingOmniboxQuery = pendingOmniboxQuery,
+                    onConsumePendingOmniboxQuery = { pendingOmniboxQuery = null },
+                    darkTheme = darkTheme,
                     onShowFileChooser = { callback, params -> showFileChooser(callback, params) },
                     onPermissionRequested = { request ->
                         handlePermissionRequest(request, settings.micPermission, settings.cameraPermission, settings.permissionGrantTtlHours)
@@ -164,6 +197,50 @@ class MainActivity : ComponentActivity() {
                 )
             }
         }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        handleIncomingIntent(intent)
+    }
+
+    override fun onStop() {
+        super.onStop()
+        val controller = (application as BrowserApplication).appLockController
+        controller.onActivityStop()
+        appLocked = controller.shouldLock()
+    }
+
+    private fun handleIncomingIntent(intent: Intent?) {
+        if (intent == null) return
+        when (intent.action) {
+            Intent.ACTION_VIEW -> {
+                intent.dataString?.trim()?.takeIf { it.isNotBlank() }?.let { pendingOpenUrl = it }
+            }
+            Intent.ACTION_WEB_SEARCH -> {
+                intent.getStringExtra(SearchManager.QUERY)?.trim()?.takeIf { it.isNotBlank() }?.let {
+                    pendingOmniboxQuery = it
+                }
+            }
+            Intent.ACTION_SEND -> {
+                val text = intent.getStringExtra(Intent.EXTRA_TEXT)?.trim().orEmpty()
+                if (text.startsWith("http://") || text.startsWith("https://")) {
+                    pendingOpenUrl = text
+                } else if (text.isNotBlank()) {
+                    pendingOmniboxQuery = text
+                }
+            }
+            else -> {
+                if (intent.hasExtra(EXTRA_QUERY)) {
+                    pendingOmniboxQuery = intent.getStringExtra(EXTRA_QUERY).orEmpty()
+                }
+            }
+        }
+    }
+
+    companion object {
+        const val EXTRA_QUERY = "com.prime.nobuffer.EXTRA_QUERY"
     }
 
     private fun showFileChooser(
@@ -304,6 +381,11 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun BrowserNavHost(
     navController: NavHostController = rememberNavController(),
+    pendingOpenUrl: String? = null,
+    onConsumePendingOpenUrl: () -> Unit = {},
+    pendingOmniboxQuery: String? = null,
+    onConsumePendingOmniboxQuery: () -> Unit = {},
+    darkTheme: Boolean = false,
     onShowFileChooser: (ValueCallback<Array<Uri>>, WebChromeClient.FileChooserParams) -> Boolean = { _, _ -> false },
     onPermissionRequested: (PermissionRequest) -> Unit = { it.deny() },
     onGeolocationPermissionRequested: (String, GeolocationPermissions.Callback) -> Unit = { _, callback -> callback.invoke(null, false, false) },
@@ -323,6 +405,24 @@ fun BrowserNavHost(
     var findInPageSignal by remember { mutableIntStateOf(0) }
     var elementPickerActive by remember { mutableStateOf(false) }
     var shieldsSheetVisible by remember { mutableStateOf(false) }
+    var siteInfoVisible by remember { mutableStateOf(false) }
+    var cookieInspectorVisible by remember { mutableStateOf(false) }
+    var readerArticle by remember { mutableStateOf<ReaderArticle?>(null) }
+
+    fun loadInActiveTab(url: String) {
+        val tab = tabsViewModel.activeTab ?: return
+        tabsViewModel.updateTabInfo(tab.id, url = url)
+        val webView = tab.webView ?: return
+        val client = webView.webViewClient as? BrowserWebViewClient
+        val resolved = client?.resolveNavigationUrl(url) ?: url
+        webView.loadUrl(resolved, client?.currentNavigationHeaders() ?: emptyMap())
+    }
+
+    fun applyZoom(value: Int) {
+        val next = value.coerceIn(50, 200)
+        settingsViewModel.setTextZoom(next)
+        tabsViewModel.activeTab?.webView?.settings?.textZoom = next
+    }
 
     // Phase 17-19 — single lambda bundle threaded down to every BrowserWebViewClient instance.
     val shields = remember(settings) {
@@ -331,16 +431,16 @@ fun BrowserNavHost(
             isHostBlocked = { host -> app.adTrackerBlocklist.isBlocked(host) || app.cosmeticRuleStore.isDomainBlocked(host) },
             cosmeticSelectors = { host -> app.cosmeticRuleStore.selectorsFor(host) },
             navigationHeaders = {
-                if (settings.antiFingerprintingEnabled) {
-                    mapOf("Sec-GPC" to "1", "Accept-Language" to "en-US")
-                } else {
-                    emptyMap()
-                }
+                NavigationHeaders.build(
+                    doNotTrack = settings.doNotTrackEnabled,
+                    globalPrivacyControl = settings.antiFingerprintingEnabled
+                )
             },
             httpsUpgradeEnabled = true,
             trackingParamStrippingEnabled = true,
             redirectorUnwrapEnabled = true,
-            deAmpEnabled = true
+            deAmpEnabled = true,
+            isVideoAllowed = { host -> app.siteBlocker.isVideoAllowed(host.orEmpty()) }
         )
     }
 
@@ -364,36 +464,83 @@ fun BrowserNavHost(
         onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
 
-    LaunchedEffect(settings, tabs) {
+    LaunchedEffect(settings, tabs, darkTheme) {
         tabs.forEach { tab ->
             val webView = tab.webView ?: return@forEach
             webView.settings.javaScriptEnabled = app.shieldsResolver.effectiveShields(hostOfTab(tab)).scriptsEnabled
             webView.settings.textZoom = settings.textZoom
+            val desktop = tab.desktopSite ?: settings.desktopSiteEnabled
             webView.settings.userAgentString =
-                if (settings.desktopSiteEnabled) BrowserWebView.DESKTOP_UA else BrowserWebView.CHROME_UA
-            CookieManager.getInstance().setAcceptThirdPartyCookies(webView, !settings.blockThirdPartyCookies)
-            if (WebViewFeature.isFeatureSupported(WebViewFeature.SAFE_BROWSING_ENABLE)) {
-                WebSettingsCompat.setSafeBrowsingEnabled(webView.settings, settings.safeBrowsingEnabled)
+                if (desktop) BrowserWebView.DESKTOP_UA else BrowserWebView.CHROME_UA
+            if (tab.isIncognito) {
+                webView.enableIncognitoIsolation()
+            } else {
+                CookieManager.getInstance().setAcceptThirdPartyCookies(webView, !settings.blockThirdPartyCookies)
+                if (WebViewFeature.isFeatureSupported(WebViewFeature.SAFE_BROWSING_ENABLE)) {
+                    WebSettingsCompat.setSafeBrowsingEnabled(webView.settings, settings.safeBrowsingEnabled)
+                }
+                webView.importantForAutofill =
+                    if (settings.autofillEnabled) View.IMPORTANT_FOR_AUTOFILL_YES else View.IMPORTANT_FOR_AUTOFILL_NO
             }
-            webView.importantForAutofill =
-                if (settings.autofillEnabled) View.IMPORTANT_FOR_AUTOFILL_YES else View.IMPORTANT_FOR_AUTOFILL_NO
+            WebViewAppearance.applyForceDark(webView, darkTheme && settings.forceDarkPages)
         }
+    }
+
+    LaunchedEffect(pendingOpenUrl, tabs.size) {
+        val url = pendingOpenUrl ?: return@LaunchedEffect
+        if (tabs.isEmpty()) return@LaunchedEffect
+        onConsumePendingOpenUrl()
+        val active = tabsViewModel.activeTab
+        if (tabs.size == 1 && active != null && (active.url.isBlank() || active.url == "about:blank")) {
+            loadInActiveTab(url)
+        } else {
+            tabsViewModel.newTab(url)
+        }
+        if (navController.currentDestination?.route != Screen.Browser.route) {
+            navController.popBackStack(Screen.Browser.route, inclusive = false)
+        }
+    }
+
+    LaunchedEffect(activeTab?.id, activeTab?.url) {
+        val url = activeTab?.url ?: return@LaunchedEffect
+        if (url.isBlank() || url == "about:blank") return@LaunchedEffect
+        while (true) {
+            kotlinx.coroutines.delay(30_000)
+            app.siteBlocker.recordUsage(url, 30_000L)
+        }
+    }
+
+    LaunchedEffect(pendingOmniboxQuery) {
+        val query = pendingOmniboxQuery ?: return@LaunchedEffect
+        onConsumePendingOmniboxQuery()
+        val encoded = URLEncoder.encode(query.ifBlank { "about:blank" }, "UTF-8")
+        if (navController.currentDestination?.route != Screen.Browser.route) {
+            navController.popBackStack(Screen.Browser.route, inclusive = false)
+        }
+        navController.navigate(Screen.Omnibox.withUrl(encoded))
     }
 
     if (menuVisible) {
         BrowserMenuBottomSheet(
             url = activeTab?.url.orEmpty(),
+            textZoom = settings.textZoom,
+            desktopSiteEnabled = activeTab?.desktopSite ?: settings.desktopSiteEnabled,
             onDismiss = { menuVisible = false },
             onReload = {
                 activeTab?.webView?.reload()
                 menuVisible = false
             },
             onShare = {
-                val shareIntent = Intent(Intent.ACTION_SEND).apply {
-                    type = "text/plain"
-                    putExtra(Intent.EXTRA_TEXT, activeTab?.url.orEmpty())
+                val shareUrl = activeTab?.url.orEmpty()
+                if (app.siteBlocker.isUrlBlocked(shareUrl)) {
+                    Toast.makeText(context, "Blocked sites can't be shared", Toast.LENGTH_SHORT).show()
+                } else {
+                    val shareIntent = Intent(Intent.ACTION_SEND).apply {
+                        type = "text/plain"
+                        putExtra(Intent.EXTRA_TEXT, shareUrl)
+                    }
+                    context.startActivity(Intent.createChooser(shareIntent, null))
                 }
-                context.startActivity(Intent.createChooser(shareIntent, null))
                 menuVisible = false
             },
             onPrint = {
@@ -401,7 +548,15 @@ fun BrowserNavHost(
                 menuVisible = false
             },
             onInstall = {
-                activeTab?.let { onInstallShortcut(it.url, it.title) }
+                val tab = activeTab
+                when {
+                    tab == null -> Unit
+                    tab.isIncognito ->
+                        Toast.makeText(context, "Can't add private tabs to the home screen", Toast.LENGTH_SHORT).show()
+                    app.siteBlocker.isUrlBlocked(tab.url) ->
+                        Toast.makeText(context, "Blocked sites can't be added to the home screen", Toast.LENGTH_SHORT).show()
+                    else -> onInstallShortcut(tab.url, tab.title)
+                }
                 menuVisible = false
             },
             onNewTab = {
@@ -413,8 +568,13 @@ fun BrowserNavHost(
                 menuVisible = false
             },
             onAddToHomePage = {
-                activeTab?.let { quickAccessViewModel.addSite(it.url, it.title) }
-                Toast.makeText(context, "Added to home page", Toast.LENGTH_SHORT).show()
+                val tab = activeTab
+                if (tab == null || tab.isIncognito) {
+                    Toast.makeText(context, "Can't pin private tabs to the home page", Toast.LENGTH_SHORT).show()
+                } else {
+                    quickAccessViewModel.addSite(tab.url, tab.title)
+                    Toast.makeText(context, "Added to home page", Toast.LENGTH_SHORT).show()
+                }
                 menuVisible = false
             },
             onHistory = {
@@ -436,6 +596,82 @@ fun BrowserNavHost(
             onSettings = {
                 menuVisible = false
                 navController.navigate(Screen.Settings.route)
+            },
+            onCopyLink = {
+                val copyUrl = activeTab?.url.orEmpty()
+                when {
+                    copyUrl.isBlank() || copyUrl == "about:blank" ->
+                        Toast.makeText(context, "Nothing to copy", Toast.LENGTH_SHORT).show()
+                    app.siteBlocker.isUrlBlocked(copyUrl) ->
+                        Toast.makeText(context, "Blocked sites can't be copied", Toast.LENGTH_SHORT).show()
+                    else -> {
+                        val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                        clipboard.setPrimaryClip(ClipData.newPlainText("link", copyUrl))
+                        Toast.makeText(context, "Link copied", Toast.LENGTH_SHORT).show()
+                    }
+                }
+                menuVisible = false
+            },
+            onZoomDelta = { delta -> applyZoom(settings.textZoom + delta) },
+            onZoomSet = { value -> applyZoom(value) },
+            onBookmarks = {
+                menuVisible = false
+                navController.navigate(Screen.Bookmarks.route)
+            },
+            onRestoreRecentlyClosed = {
+                menuVisible = false
+                val restored = tabsViewModel.restoreRecentlyClosed()
+                if (restored == null) {
+                    Toast.makeText(context, "No recently closed tabs", Toast.LENGTH_SHORT).show()
+                }
+            },
+            onReaderMode = {
+                menuVisible = false
+                if (readerArticle != null) {
+                    readerArticle = null
+                } else {
+                    val pageUrl = activeTab?.url.orEmpty()
+                    val webView = activeTab?.webView
+                    if (webView == null || pageUrl.isBlank() || pageUrl == "about:blank") {
+                        Toast.makeText(context, "No page to read", Toast.LENGTH_SHORT).show()
+                    } else {
+                        webView.evaluateJavascript(ReaderMode.EXTRACT_ARTICLE_JS) { raw ->
+                            val parsed = ReaderMode.parse(raw)
+                            if (parsed == null || parsed.body.isBlank()) {
+                                Toast.makeText(context, "Couldn't extract article", Toast.LENGTH_SHORT).show()
+                            } else {
+                                readerArticle = parsed
+                            }
+                        }
+                    }
+                }
+            },
+            onLockSite = {
+                menuVisible = false
+                val pageUrl = activeTab?.url.orEmpty()
+                if (pageUrl.isBlank() || pageUrl == "about:blank") {
+                    Toast.makeText(context, "Nothing to lock", Toast.LENGTH_SHORT).show()
+                } else {
+                    coroutineScope.launch {
+                        val error = app.siteBlocker.addSite(pageUrl)
+                        Toast.makeText(context, error ?: "Site locked", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            },
+            onSiteInfo = {
+                menuVisible = false
+                siteInfoVisible = true
+            },
+            onDesktopSite = {
+                val tab = activeTab
+                if (tab != null) {
+                    val enabled = !(tab.desktopSite ?: settings.desktopSiteEnabled)
+                    tabsViewModel.updateDesktopSite(tab.id, enabled)
+                    tab.webView?.settings?.userAgentString =
+                        if (enabled) BrowserWebView.DESKTOP_UA else BrowserWebView.CHROME_UA
+                    tab.webView?.reload()
+                }
+                menuVisible = false
             }
         )
     }
@@ -477,6 +713,19 @@ fun BrowserNavHost(
         )
     }
 
+    if (siteInfoVisible) {
+        SiteInfoBottomSheet(
+            url = activeTab?.url.orEmpty(),
+            javaScriptEnabled = activeTab?.webView?.settings?.javaScriptEnabled ?: settings.javaScriptEnabled,
+            onDismiss = { siteInfoVisible = false },
+            onViewCookies = {
+                siteInfoVisible = false
+                cookieInspectorVisible = true
+            }
+        )
+    }
+
+    Box(modifier = Modifier.fillMaxSize()) {
     NavHost(
         navController = navController,
         startDestination = Screen.Browser.route
@@ -557,7 +806,9 @@ fun BrowserNavHost(
                     if (index >= 0) tabsViewModel.switchTab(index)
                     navController.popBackStack()
                 },
-                onCloseTab = { tab -> tabsViewModel.closeTabWithUndo(tab.id) },
+                onCloseTab = { tab ->
+                    tabsViewModel.closeTabWithUndo(tab.id)
+                },
                 onNewTab = {
                     tabsViewModel.newTab("about:blank")
                     navController.popBackStack()
@@ -608,7 +859,9 @@ fun BrowserNavHost(
         composable(Screen.Settings.route) {
             SettingsScreen(
                 onOpenPrivacy = { navController.navigate(Screen.SettingsPrivacy.route) },
-                onOpenSite = { navController.navigate(Screen.SettingsSite.route) }
+                onOpenSite = { navController.navigate(Screen.SettingsSite.route) },
+                onOpenBlockedSites = { navController.navigate(Screen.SettingsBlockedSites.route) },
+                onOpenBookmarks = { navController.navigate(Screen.Bookmarks.route) }
             )
         }
         composable(Screen.SettingsPrivacy.route) {
@@ -616,6 +869,26 @@ fun BrowserNavHost(
         }
         composable(Screen.SettingsSite.route) {
             SettingsSiteScreen()
+        }
+        composable(Screen.SettingsBlockedSites.route) {
+            SettingsBlockedSitesScreen()
+        }
+    }
+
+        readerArticle?.let { article ->
+            ReaderModeScreen(
+                article = article,
+                onClose = { readerArticle = null },
+                modifier = Modifier.fillMaxSize()
+            )
+        }
+
+        if (cookieInspectorVisible) {
+            CookieInspectorScreen(
+                url = activeTab?.url.orEmpty(),
+                onClose = { cookieInspectorVisible = false },
+                modifier = Modifier.fillMaxSize()
+            )
         }
     }
 }

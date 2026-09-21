@@ -1,5 +1,13 @@
 package com.prime.nobuffer.ui.screens
 
+import android.Manifest
+import android.app.Activity
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.graphics.Bitmap
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -30,7 +38,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -38,8 +46,12 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.google.mlkit.vision.barcode.BarcodeScanning
+import com.google.mlkit.vision.barcode.common.Barcode
+import com.google.mlkit.vision.common.InputImage
 import com.prime.nobuffer.omnibox.OmniboxSuggestion
 import com.prime.nobuffer.omnibox.OmniboxViewModel
 import com.prime.nobuffer.omnibox.SuggestionType
@@ -55,6 +67,7 @@ fun OmniboxScreen(
     viewModel: OmniboxViewModel = viewModel()
 ) {
     val colors = Orion.colors
+    val context = LocalContext.current
     val prefill = if (initialUrl == "about:blank") "" else initialUrl
 
     val fieldState = remember { TextFieldState(prefill, TextRange(0, prefill.length)) }
@@ -71,7 +84,70 @@ fun OmniboxScreen(
     }
 
     fun submit(text: String) {
-        if (text.isNotBlank()) onNavigate(resolveInput(text))
+        if (text.isNotBlank()) onNavigate(viewModel.resolveInput(text))
+    }
+
+    fun applyRecognizedText(text: String, autoSubmit: Boolean) {
+        val trimmed = text.trim()
+        if (trimmed.isEmpty()) return
+        fieldState.edit { replace(0, length, trimmed) }
+        if (autoSubmit) submit(trimmed)
+    }
+
+    val zxingLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        val contents = result.data?.getStringExtra("SCAN_RESULT")
+        if (!contents.isNullOrBlank()) applyRecognizedText(contents, autoSubmit = true)
+        else if (result.resultCode == Activity.RESULT_OK) {
+            Toast.makeText(context, "No QR code found", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    val captureLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.TakePicturePreview()
+    ) { bitmap ->
+        if (bitmap == null) return@rememberLauncherForActivityResult
+        decodeQrBitmap(bitmap) { value ->
+            if (!value.isNullOrBlank()) applyRecognizedText(value, autoSubmit = true)
+            else Toast.makeText(context, "No QR code found", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    fun launchCameraQr() {
+        if (!context.packageManager.hasSystemFeature(PackageManager.FEATURE_CAMERA_ANY)) {
+            Toast.makeText(context, "No camera available — paste a QR URL instead", Toast.LENGTH_SHORT).show()
+            return
+        }
+        try {
+            captureLauncher.launch(null)
+        } catch (_: Exception) {
+            Toast.makeText(context, "Couldn't open camera — paste a QR URL instead", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    val cameraPermissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        if (granted) launchCameraQr()
+        else Toast.makeText(context, "Camera permission is needed to scan QR codes", Toast.LENGTH_SHORT).show()
+    }
+
+    fun startQrScan() {
+        val zxing = Intent("com.google.zxing.client.android.SCAN").apply {
+            putExtra("SCAN_MODE", "QR_CODE_MODE")
+        }
+        if (zxing.resolveActivity(context.packageManager) != null) {
+            try {
+                zxingLauncher.launch(zxing)
+                return
+            } catch (_: Exception) {
+                // Fall through to in-app camera + ML Kit.
+            }
+        }
+        val granted = ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) ==
+            PackageManager.PERMISSION_GRANTED
+        if (granted) launchCameraQr() else cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
     }
 
     Column(
@@ -108,6 +184,8 @@ fun OmniboxScreen(
                     onKeyboardAction = KeyboardActionHandler { submit(fieldState.text.toString()) },
                     lineLimits = TextFieldLineLimits.SingleLine
                 )
+                Box(modifier = Modifier.size(8.dp))
+                OmniboxIconButton("QR", colors.accent) { startQrScan() }
             }
 
             Box(modifier = Modifier.size(12.dp))
@@ -187,12 +265,31 @@ private fun SuggestionRow(suggestion: OmniboxSuggestion, onClick: () -> Unit) {
     }
 }
 
-private fun resolveInput(input: String): String {
-    val trimmed = input.trim()
-    val looksLikeUrl = trimmed.contains(".") && !trimmed.contains(" ")
-    return when {
-        trimmed.startsWith("http://") || trimmed.startsWith("https://") -> trimmed
-        looksLikeUrl -> "https://$trimmed"
-        else -> "https://www.google.com/search?q=${java.net.URLEncoder.encode(trimmed, "UTF-8")}"
-    }
+@Composable
+private fun OmniboxIconButton(label: String, color: androidx.compose.ui.graphics.Color, onClick: () -> Unit) {
+    Text(
+        text = label,
+        color = color,
+        fontSize = 13.sp,
+        fontWeight = FontWeight.SemiBold,
+        modifier = Modifier.clickable(
+            interactionSource = remember { MutableInteractionSource() },
+            indication = null,
+            onClick = onClick
+        )
+    )
 }
+
+private fun decodeQrBitmap(bitmap: Bitmap, onResult: (String?) -> Unit) {
+    val image = InputImage.fromBitmap(bitmap, 0)
+    BarcodeScanning.getClient()
+        .process(image)
+        .addOnSuccessListener { barcodes ->
+            val value = barcodes.firstOrNull { it.rawValue != null }?.rawValue
+                ?: barcodes.firstOrNull { it.format == Barcode.FORMAT_QR_CODE }?.rawValue
+            onResult(value)
+        }
+        .addOnFailureListener { onResult(null) }
+}
+
+

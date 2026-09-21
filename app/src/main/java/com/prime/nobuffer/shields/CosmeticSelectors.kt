@@ -16,6 +16,27 @@ object CosmeticSelectors {
         ".linkedin-share-button", ".addthis_toolbox"
     )
 
+    val COOKIE_BANNERS: List<String> = listOf(
+        "#cookie-banner", ".cookie-banner", ".cc-window", ".cc-banner",
+        "#onetrust-banner-sdk", "#onetrust-consent-sdk", ".ot-sdk-container",
+        ".qc-cmp2-container", "#qc-cmp2-container",
+        "#CybotCookiebotDialog", "#CybotCookiebotDialogBodyUnderlay",
+        "[id*=\"cookie-consent\"]", "[class*=\"cookie-consent\"]",
+        "[id*=\"cookieConsent\"]", "#cookieConsent", ".cookie-consent",
+        "[id*=\"CookieBanner\"]", "[class*=\"CookieBanner\"]",
+        "#cookie-notice", ".cookie-notice", "#cookieNotice",
+        "#consent-banner", ".consent-banner", "#gdpr-banner", ".gdpr-banner",
+        "#didomi-host", ".didomi-popup-container",
+        "#usercentrics-root", ".osano-cm-window",
+        "#iubenda-cs-banner", ".iubenda-cs-container",
+        "#tarteaucitronRoot", "#truste-consent-track",
+        "#cookie-law-info-bar", "#moove_gdpr_cookie_info_bar",
+        "#eu-cookie-law", ".eu-cookie-compliance-banner",
+        "#cookiescript_injected", ".sp-message-container",
+        "#cmp-app-container", ".fc-consent-root",
+        ".js-cookie-banner"
+    )
+
     fun buildHideJs(selectors: List<String>): String {
         if (selectors.isEmpty()) return ""
         val selectorList = selectors.joinToString(",") { it.replace("\\", "\\\\").replace("'", "\\'") }

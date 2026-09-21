@@ -50,6 +50,10 @@ class DownloadsViewModel(application: Application) : AndroidViewModel(applicatio
         downloadManager.remove(id)
     }
 
+    fun configureRequestDestination(request: DownloadManager.Request, fileName: String, downloadsLocation: String) {
+        DownloadLocation.apply(request, fileName, downloadsLocation)
+    }
+
     private fun queryDownloads(): List<DownloadItem> {
         val cursor = downloadManager.query(DownloadManager.Query()) ?: return emptyList()
         val result = mutableListOf<DownloadItem>()

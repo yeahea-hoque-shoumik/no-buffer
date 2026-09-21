@@ -16,6 +16,8 @@ datastore = "1.1.3"
 webkit = "1.13.0"
 lifecycleCompose = "2.10.0"
 swiperefreshlayout = "1.1.0"
+biometric = "1.1.0"
+mlkitBarcode = "17.3.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -42,6 +44,8 @@ coil-compose = { group = "io.coil-kt", name = "coil-compose", version.ref = "coi
 androidx-webkit = { group = "androidx.webkit", name = "webkit", version.ref = "webkit" }
 androidx-lifecycle-compose = { group = "androidx.lifecycle", name = "lifecycle-runtime-compose", version.ref = "lifecycleCompose" }
 androidx-swiperefreshlayout = { group = "androidx.swiperefreshlayout", name = "swiperefreshlayout", version.ref = "swiperefreshlayout" }
+androidx-biometric = { group = "androidx.biometric", name = "biometric", version.ref = "biometric" }
+google-mlkit-barcode-scanning = { group = "com.google.mlkit", name = "barcode-scanning", version.ref = "mlkitBarcode" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

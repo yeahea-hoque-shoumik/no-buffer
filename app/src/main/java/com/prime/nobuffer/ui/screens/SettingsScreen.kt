@@ -51,6 +51,7 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.prime.nobuffer.history.HistoryViewModel
+import com.prime.nobuffer.omnibox.SearchEngines
 import com.prime.nobuffer.settings.DarkModeOption
 import com.prime.nobuffer.settings.SettingsViewModel
 import com.prime.nobuffer.settings.ShieldsMode
@@ -63,6 +64,8 @@ import com.prime.nobuffer.ui.theme.Orion
 fun SettingsScreen(
     onOpenPrivacy: () -> Unit,
     onOpenSite: () -> Unit,
+    onOpenBlockedSites: () -> Unit,
+    onOpenBookmarks: () -> Unit = {},
     modifier: Modifier = Modifier,
     viewModel: SettingsViewModel = viewModel(),
     historyViewModel: HistoryViewModel = viewModel()
@@ -83,7 +86,9 @@ fun SettingsScreen(
     val autofillServiceLabel = remember(autofillRefreshTrigger) { currentAutofillServiceLabel(context) }
 
     var showSearchEngineDialog by remember { mutableStateOf(false) }
+    var showAddSearchEngineDialog by remember { mutableStateOf(false) }
     var showHomepageDialog by remember { mutableStateOf(false) }
+    var showDownloadsDialog by remember { mutableStateOf(false) }
     var showThemeDialog by remember { mutableStateOf(false) }
     var showZoomDialog by remember { mutableStateOf(false) }
     var showClearDataDialog by remember { mutableStateOf(false) }
@@ -139,12 +144,18 @@ fun SettingsScreen(
         item {
             SettingsSection(title = "GENERAL") {
                 SettingsRow(icon = "🔍", label = "Search Engine", value = settings.searchEngine) { showSearchEngineDialog = true }
+                SettingsRow(icon = "➕", label = "Add search engine", value = "") { showAddSearchEngineDialog = true }
                 SettingsRow(
                     icon = "🏠",
                     label = "Homepage",
-                    value = settings.homepageUrl.ifBlank { "New Tab Page" },
-                    showDivider = false
+                    value = settings.homepageUrl.ifBlank { "New Tab Page" }
                 ) { showHomepageDialog = true }
+                SettingsRow(
+                    icon = "📁",
+                    label = "Downloads folder",
+                    value = settings.downloadsLocation.ifBlank { "Downloads" }
+                ) { showDownloadsDialog = true }
+                SettingsRow(icon = "★", label = "Bookmarks", value = "", showDivider = false, onClick = onOpenBookmarks)
             }
         }
 
@@ -160,6 +171,7 @@ fun SettingsScreen(
                 ToggleRow(icon = "🍪", label = "Block 3rd-party Cookies", checked = settings.blockThirdPartyCookies) { viewModel.setBlockThirdPartyCookies(it) }
                 ToggleRow(icon = "🕵️", label = "Anti-Fingerprinting", checked = settings.antiFingerprintingEnabled) { viewModel.setAntiFingerprintingEnabled(it) }
                 SettingsRow(icon = "🔒", label = "Privacy & Security", value = "", onClick = onOpenPrivacy)
+                SettingsRow(icon = "🚫", label = "Blocked Sites", value = "", onClick = onOpenBlockedSites)
                 SettingsRow(icon = "🌐", label = "Site Settings", value = "", onClick = onOpenSite)
                 SettingsRow(icon = "🧹", label = "Clear Browsing Data", value = "", showDivider = false, onClick = { showClearDataDialog = true })
             }
@@ -187,6 +199,7 @@ fun SettingsScreen(
         item {
             SettingsSection(title = "APPEARANCE") {
                 SettingsRow(icon = "🎨", label = "Theme", value = settings.darkMode.name.lowercase().replaceFirstChar { it.uppercase() }) { showThemeDialog = true }
+                ToggleRow(icon = "🌙", label = "Force dark pages", checked = settings.forceDarkPages) { viewModel.setForceDarkPages(it) }
                 SettingsRow(icon = "🔤", label = "Font Size", value = "${settings.textZoom}%") { showZoomDialog = true }
                 SettingsRow(icon = "🔍", label = "Page Zoom", value = "${settings.textZoom}%", showDivider = false) { showZoomDialog = true }
             }
@@ -204,10 +217,25 @@ fun SettingsScreen(
     if (showSearchEngineDialog) {
         SelectorDialog(
             title = "Search Engine",
-            options = listOf("Google", "Bing", "DuckDuckGo"),
+            options = SearchEngines.all(settings.customSearchEnginesJson).map { it.name },
             selected = settings.searchEngine,
             onSelect = { viewModel.setSearchEngine(it); showSearchEngineDialog = false },
-            onDismiss = { showSearchEngineDialog = false }
+            onDismiss = { showSearchEngineDialog = false },
+            extraActionLabel = "Add search engine",
+            onExtraAction = {
+                showSearchEngineDialog = false
+                showAddSearchEngineDialog = true
+            }
+        )
+    }
+
+    if (showAddSearchEngineDialog) {
+        AddSearchEngineDialog(
+            onConfirm = { name, url ->
+                viewModel.addCustomSearchEngine(name, url)
+                showAddSearchEngineDialog = false
+            },
+            onDismiss = { showAddSearchEngineDialog = false }
         )
     }
 
@@ -216,6 +244,14 @@ fun SettingsScreen(
             current = settings.homepageUrl,
             onConfirm = { viewModel.setHomepageUrl(it); showHomepageDialog = false },
             onDismiss = { showHomepageDialog = false }
+        )
+    }
+
+    if (showDownloadsDialog) {
+        DownloadsFolderDialog(
+            current = settings.downloadsLocation,
+            onConfirm = { viewModel.setDownloadsLocation(it.ifBlank { "Downloads" }); showDownloadsDialog = false },
+            onDismiss = { showDownloadsDialog = false }
         )
     }
 
@@ -357,7 +393,15 @@ private fun ToggleRow(icon: String, label: String, checked: Boolean, onCheckedCh
 }
 
 @Composable
-private fun SelectorDialog(title: String, options: List<String>, selected: String, onSelect: (String) -> Unit, onDismiss: () -> Unit) {
+private fun SelectorDialog(
+    title: String,
+    options: List<String>,
+    selected: String,
+    onSelect: (String) -> Unit,
+    onDismiss: () -> Unit,
+    extraActionLabel: String? = null,
+    onExtraAction: (() -> Unit)? = null
+) {
     val colors = Orion.colors
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -376,6 +420,9 @@ private fun SelectorDialog(title: String, options: List<String>, selected: Strin
                         RadioButton(selected = option == selected, onClick = { onSelect(option) })
                         Text(option, color = colors.text, fontSize = 14.sp)
                     }
+                }
+                if (extraActionLabel != null && onExtraAction != null) {
+                    TextButton(onClick = onExtraAction) { Text(extraActionLabel, color = colors.accent) }
                 }
             }
         },
@@ -405,6 +452,88 @@ private fun HomepageDialog(current: String, onConfirm: (String) -> Unit, onDismi
             )
         },
         confirmButton = { TextButton(onClick = { onConfirm(text) }) { Text("Save", color = colors.accent) } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel", color = colors.textMid) } }
+    )
+}
+
+@Composable
+private fun AddSearchEngineDialog(onConfirm: (String, String) -> Unit, onDismiss: () -> Unit) {
+    val colors = Orion.colors
+    var name by remember { mutableStateOf("") }
+    var url by remember { mutableStateOf("") }
+    var error by remember { mutableStateOf<String?>(null) }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        containerColor = colors.surface,
+        title = { Text("Add search engine", color = colors.text) },
+        text = {
+            Column {
+                androidx.compose.foundation.text.BasicTextField(
+                    value = name,
+                    onValueChange = { name = it; error = null },
+                    textStyle = androidx.compose.ui.text.TextStyle(color = colors.text, fontSize = 14.sp),
+                    decorationBox = { inner ->
+                        if (name.isEmpty()) Text("Name", color = colors.textDim, fontSize = 13.sp)
+                        inner()
+                    }
+                )
+                Box(modifier = Modifier.size(12.dp))
+                androidx.compose.foundation.text.BasicTextField(
+                    value = url,
+                    onValueChange = { url = it; error = null },
+                    textStyle = androidx.compose.ui.text.TextStyle(color = colors.text, fontSize = 14.sp),
+                    decorationBox = { inner ->
+                        if (url.isEmpty()) Text("https://example.com/search?q=%s", color = colors.textDim, fontSize = 13.sp)
+                        inner()
+                    }
+                )
+                error?.let {
+                    Box(modifier = Modifier.size(8.dp))
+                    Text(it, color = colors.accent, fontSize = 12.sp)
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = {
+                when {
+                    name.trim().isEmpty() -> error = "Name is required"
+                    !url.contains("%s") -> error = "URL must contain %s"
+                    else -> onConfirm(name, url)
+                }
+            }) { Text("Add", color = colors.accent) }
+        },
+        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel", color = colors.textMid) } }
+    )
+}
+
+@Composable
+private fun DownloadsFolderDialog(current: String, onConfirm: (String) -> Unit, onDismiss: () -> Unit) {
+    val colors = Orion.colors
+    var text by remember { mutableStateOf(current.ifBlank { "Downloads" }) }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        containerColor = colors.surface,
+        title = { Text("Downloads folder", color = colors.text) },
+        text = {
+            Column {
+                Text(
+                    "Subfolder under public Downloads. Default is Downloads.",
+                    color = colors.textMid,
+                    fontSize = 12.sp
+                )
+                Box(modifier = Modifier.size(10.dp))
+                androidx.compose.foundation.text.BasicTextField(
+                    value = text,
+                    onValueChange = { text = it },
+                    textStyle = androidx.compose.ui.text.TextStyle(color = colors.text, fontSize = 14.sp),
+                    decorationBox = { inner ->
+                        if (text.isEmpty()) Text("Downloads", color = colors.textDim, fontSize = 13.sp)
+                        inner()
+                    }
+                )
+            }
+        },
+        confirmButton = { TextButton(onClick = { onConfirm(text.trim().ifBlank { "Downloads" }) }) { Text("Save", color = colors.accent) } },
         dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel", color = colors.textMid) } }
     )
 }

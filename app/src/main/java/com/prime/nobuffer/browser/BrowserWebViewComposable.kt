@@ -6,7 +6,6 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.net.Uri
 import android.net.http.SslError
-import android.os.Environment
 import android.webkit.GeolocationPermissions
 import android.webkit.PermissionRequest
 import android.webkit.SslErrorHandler
@@ -31,7 +30,11 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+import com.prime.nobuffer.BrowserApplication
+import com.prime.nobuffer.downloads.DownloadLocation
 import com.prime.nobuffer.shields.WebShieldsContext
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
 
 @Composable
 fun BrowserWebViewComposable(
@@ -48,7 +51,10 @@ fun BrowserWebViewComposable(
     onWebViewReady: (BrowserWebView) -> Unit = {},
     onShowFileChooser: (ValueCallback<Array<Uri>>, WebChromeClient.FileChooserParams) -> Boolean = { _, _ -> false },
     onPermissionRequested: (PermissionRequest) -> Unit = { it.deny() },
-    onGeolocationPermissionRequested: (String, GeolocationPermissions.Callback) -> Unit = { _, callback -> callback.invoke(null, false, false) }
+    onGeolocationPermissionRequested: (String, GeolocationPermissions.Callback) -> Unit = { _, callback -> callback.invoke(null, false, false) },
+    isSiteLocked: (String) -> Boolean = { false },
+    onSiteLocked: (String) -> Unit = {},
+    isIncognito: Boolean = false
 ) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -79,10 +85,13 @@ fun BrowserWebViewComposable(
                 trackingParamStrippingEnabled = shields.trackingParamStrippingEnabled,
                 redirectorUnwrapEnabled = shields.redirectorUnwrapEnabled,
                 deAmpEnabled = shields.deAmpEnabled,
-                onInsecureFallback = { fallbackUrl ->
-                    Toast.makeText(context, "Site doesn't support HTTPS — loaded over HTTP", Toast.LENGTH_SHORT).show()
+                onHttpsLoadFailed = {
+                    Toast.makeText(context, "Couldn't load this site over HTTPS", Toast.LENGTH_SHORT).show()
                 },
-                navigationHeaders = shields.navigationHeaders
+                navigationHeaders = shields.navigationHeaders,
+                isSiteLocked = isSiteLocked,
+                onSiteLocked = onSiteLocked,
+                isVideoAllowed = shields.isVideoAllowed
             )
             webChromeClient = BrowserWebChromeClient(
                 onProgressChanged = onProgressChanged,
@@ -90,13 +99,17 @@ fun BrowserWebViewComposable(
                 onReceivedIcon = onIconChanged,
                 onShowFileChooserRequest = onShowFileChooser,
                 onPermissionRequested = onPermissionRequested,
-                onGeolocationPermissionRequested = onGeolocationPermissionRequested
+                onGeolocationPermissionRequested = onGeolocationPermissionRequested,
+                isVideoAllowed = shields.isVideoAllowed
             )
             setDownloadListener { downloadUrl, userAgent, contentDisposition, mimeType, _ ->
-                if (mimeType?.startsWith("video/") == true) {
-                    Toast.makeText(context, "Video downloads are blocked", Toast.LENGTH_SHORT).show()
-                } else {
-                    downloadFile(context, downloadUrl, userAgent, contentDisposition, mimeType)
+                when {
+                    isIncognito ->
+                        Toast.makeText(context, "Downloads are disabled in private tabs", Toast.LENGTH_SHORT).show()
+                    mimeType?.startsWith("video/") == true ->
+                        Toast.makeText(context, "Video downloads are blocked", Toast.LENGTH_SHORT).show()
+                    else ->
+                        downloadFile(context, downloadUrl, userAgent, contentDisposition, mimeType)
                 }
             }
         }
@@ -140,7 +153,11 @@ fun BrowserWebViewComposable(
                 if (url.isNotBlank() && webView.url != url) {
                     val client = webView.webViewClient as? BrowserWebViewClient
                     val resolved = client?.resolveNavigationUrl(url) ?: url
-                    webView.loadUrl(resolved, client?.currentNavigationHeaders() ?: emptyMap())
+                    if (isSiteLocked(resolved)) {
+                        onSiteLocked(resolved)
+                    } else {
+                        webView.loadUrl(resolved, client?.currentNavigationHeaders() ?: emptyMap())
+                    }
                 }
             }
         )
@@ -154,7 +171,11 @@ private fun downloadFile(context: Context, url: String, userAgent: String, conte
         addRequestHeader("User-Agent", userAgent)
         setTitle(fileName)
         setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
-        setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, fileName)
+        val location = runBlocking {
+            val app = context.applicationContext as? BrowserApplication
+            app?.settingsRepository?.settings?.first()?.downloadsLocation ?: "Downloads"
+        }
+        DownloadLocation.apply(this, fileName, location)
     }
     val downloadManager = context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
     downloadManager.enqueue(request)

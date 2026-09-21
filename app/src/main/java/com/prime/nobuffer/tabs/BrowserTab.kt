@@ -13,5 +13,7 @@ data class BrowserTab(
     val isIncognito: Boolean = false,
     val snapshotBitmap: Bitmap? = null,
     /** Phase 17 — count of ad/tracker requests blocked on this tab's current page. */
-    val blockedCount: Int = 0
+    val blockedCount: Int = 0,
+    /** Null means inherit global [com.prime.nobuffer.settings.BrowserSettings.desktopSiteEnabled]. */
+    val desktopSite: Boolean? = null
 )

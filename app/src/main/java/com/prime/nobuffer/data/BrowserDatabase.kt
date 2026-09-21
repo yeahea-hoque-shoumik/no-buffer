@@ -4,6 +4,7 @@ import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverter
 import androidx.room.TypeConverters
+import com.prime.nobuffer.data.dao.BlockedSiteDao
 import com.prime.nobuffer.data.dao.BookmarkDao
 import com.prime.nobuffer.data.dao.CustomFilterRuleDao
 import com.prime.nobuffer.data.dao.HistoryDao
@@ -11,6 +12,7 @@ import com.prime.nobuffer.data.dao.SiteCosmeticRuleDao
 import com.prime.nobuffer.data.dao.SitePermissionGrantDao
 import com.prime.nobuffer.data.dao.SiteShieldOverrideDao
 import com.prime.nobuffer.data.dao.TabDao
+import com.prime.nobuffer.data.entity.BlockedSite
 import com.prime.nobuffer.data.entity.Bookmark
 import com.prime.nobuffer.data.entity.CustomFilterRule
 import com.prime.nobuffer.data.entity.CustomFilterRuleType
@@ -25,9 +27,10 @@ import com.prime.nobuffer.data.entity.TabEntity
     entities = [
         HistoryEntry::class, Bookmark::class, TabEntity::class,
         SiteShieldOverride::class, SiteCosmeticRule::class,
-        CustomFilterRule::class, SitePermissionGrant::class
+        CustomFilterRule::class, SitePermissionGrant::class,
+        BlockedSite::class
     ],
-    version = 3,
+    version = 5,
     exportSchema = false
 )
 @TypeConverters(BrowserDatabaseConverters::class)
@@ -39,6 +42,7 @@ abstract class BrowserDatabase : RoomDatabase() {
     abstract fun siteCosmeticRuleDao(): SiteCosmeticRuleDao
     abstract fun customFilterRuleDao(): CustomFilterRuleDao
     abstract fun sitePermissionGrantDao(): SitePermissionGrantDao
+    abstract fun blockedSiteDao(): BlockedSiteDao
 }
 
 class BrowserDatabaseConverters {

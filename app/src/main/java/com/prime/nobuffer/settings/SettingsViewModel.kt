@@ -3,8 +3,11 @@ package com.prime.nobuffer.settings
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.prime.nobuffer.omnibox.SearchEngineSpec
+import com.prime.nobuffer.omnibox.SearchEngines
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -36,6 +39,23 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     fun setAntiFingerprintingEnabled(value: Boolean) = launch { repository.setAntiFingerprintingEnabled(value) }
     fun setShieldsMode(value: ShieldsMode) = launch { repository.setShieldsMode(value) }
     fun setPermissionGrantTtlHours(value: Int) = launch { repository.setPermissionGrantTtlHours(value) }
+    fun setForceDarkPages(value: Boolean) = launch { repository.setForceDarkPages(value) }
+    fun setCustomSearchEnginesJson(value: String) = launch { repository.setCustomSearchEnginesJson(value) }
+
+    fun addCustomSearchEngine(name: String, searchUrl: String, suggestUrl: String? = null) {
+        val trimmedName = name.trim()
+        val trimmedUrl = searchUrl.trim()
+        if (trimmedName.isEmpty() || !trimmedUrl.contains("%s")) return
+        val trimmedSuggest = suggestUrl?.trim()?.takeIf { it.contains("%s") }
+        launch {
+            val current = repository.settings.first()
+            val custom = SearchEngines.parseCustom(current.customSearchEnginesJson)
+                .filterNot { it.name.equals(trimmedName, ignoreCase = true) }
+            val next = custom + SearchEngineSpec(trimmedName, trimmedUrl, trimmedSuggest)
+            repository.setCustomSearchEnginesJson(SearchEngines.encodeCustom(next))
+            repository.setSearchEngine(trimmedName)
+        }
+    }
 
     private fun launch(block: suspend () -> Unit) {
         viewModelScope.launch { block() }

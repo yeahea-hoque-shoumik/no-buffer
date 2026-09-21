@@ -1,15 +1,56 @@
-*.iml
-.gradle
-/local.properties
-/.idea/caches
-/.idea/libraries
-/.idea/modules.xml
-/.idea/workspace.xml
-/.idea/navEditor.xml
-/.idea/assetWizardSettings.xml
-.DS_Store
-/build
-/captures
-.externalNativeBuild
-.cxx
+# Gradle / Android build
+.gradle/
+build/
+**/build/
+.kotlin/
+
+# Local SDK / machine config
 local.properties
+
+# Built packages and compiled output
+*.apk
+*.aar
+*.aab
+*.ap_
+*.dex
+*.class
+bin/
+gen/
+out/
+release/
+
+# Native build
+.externalNativeBuild/
+.cxx/
+captures/
+
+# IDE
+*.iml
+.idea/
+.vscode/
+*.swp
+*~
+
+# macOS
+.DS_Store
+
+# Logs and profiling
+*.log
+*.hprof
+lint/intermediates/
+lint/generated/
+lint/outputs/
+lint/tmp/
+
+# Signing keys — never commit
+*.jks
+*.keystore
+*.key
+
+# Tooling caches
+graphify-out/
+.navigation/
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots
+fastlane/test_output
