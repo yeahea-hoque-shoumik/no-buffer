@@ -16,7 +16,8 @@ import kotlinx.coroutines.withContext
 class SiteBlocker(
     private val repository: BrowserRepository,
     val passwordStore: LockPasswordStore,
-    scope: CoroutineScope
+    scope: CoroutineScope,
+    private val gambling: GamblingBlocklist? = null
 ) {
     private val _sites = MutableStateFlow<List<BlockedSite>>(emptyList())
     val sites: StateFlow<List<BlockedSite>> = _sites.asStateFlow()
@@ -38,7 +39,11 @@ class SiteBlocker(
         }
     }
 
+    /** True for forced gambling blocks, which have no unlock path (unlike user-added sites). */
+    fun isGamblingUrl(url: String): Boolean = gambling?.isBlocked(url) == true
+
     fun isUrlBlocked(url: String, nowMillis: Long = System.currentTimeMillis()): Boolean {
+        if (isGamblingUrl(url)) return true
         val site = matchingSite(url) ?: return false
         return SiteLockPolicy.isActivelyLocked(site, nowMillis)
     }

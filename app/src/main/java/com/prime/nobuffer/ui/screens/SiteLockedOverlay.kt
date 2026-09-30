@@ -58,6 +58,11 @@ fun SiteLockedOverlay(
     val scope = rememberCoroutineScope()
     val sites by app.siteBlocker.sites.collectAsStateWithLifecycle()
     val site = remember(sites, url) { app.siteBlocker.matchingSite(url) }
+    val isGambling = remember(url) { app.siteBlocker.isGamblingUrl(url) }
+    if (isGambling) {
+        GamblingBlockedScreen(host = host, onGoHome = onGoHome, modifier = modifier)
+        return
+    }
     val now = System.currentTimeMillis()
     val remainingMillis = site?.let { SiteLockPolicy.remainingBudgetMillis(it, now) }
     val budgetExhausted = site != null && SiteLockPolicy.isBudgetExhausted(site, now)
@@ -222,5 +227,48 @@ private fun budgetRemainingLabel(remainingMillis: Long): String {
         minutes <= 0L -> "Less than 1 min left today"
         minutes == 1L -> "1 min left today"
         else -> "$minutes min left today"
+    }
+}
+
+/** Forced block page: no password prompt, no unlock button — gambling sites cannot be unblocked. */
+@Composable
+private fun GamblingBlockedScreen(host: String, onGoHome: () -> Unit, modifier: Modifier = Modifier) {
+    val colors = Orion.colors
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+            .background(colors.bg),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 28.dp, vertical = 24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text("🚫", fontSize = 36.sp)
+            Box(modifier = Modifier.size(14.dp))
+            Text(
+                "Gambling sites are blocked",
+                color = colors.text,
+                fontSize = 22.sp,
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center
+            )
+            Box(modifier = Modifier.size(8.dp))
+            Text(host, color = colors.textMid, fontSize = 14.sp, textAlign = TextAlign.Center)
+            Box(modifier = Modifier.size(22.dp))
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(14.dp))
+                    .background(colors.accent)
+                    .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null, onClick = onGoHome)
+                    .padding(vertical = 14.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text("Go to New Tab", color = colors.text, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+            }
+        }
     }
 }

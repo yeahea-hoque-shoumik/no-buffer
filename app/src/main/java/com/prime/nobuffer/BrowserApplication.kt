@@ -7,6 +7,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 import com.prime.nobuffer.blocklist.AppLockController
 import com.prime.nobuffer.blocklist.AppLockStore
 import com.prime.nobuffer.blocklist.LockPasswordStore
+import com.prime.nobuffer.blocklist.GamblingBlocklist
 import com.prime.nobuffer.blocklist.SiteBlocker
 import com.prime.nobuffer.data.BrowserDatabase
 import com.prime.nobuffer.data.BrowserRepository
@@ -14,6 +15,8 @@ import com.prime.nobuffer.settings.SettingsRepository
 import com.prime.nobuffer.shields.AdTrackerBlocklist
 import com.prime.nobuffer.shields.CosmeticRuleStore
 import com.prime.nobuffer.shields.ShieldsResolver
+import com.prime.nobuffer.shields.engine.FilterEngineManager
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -42,6 +45,10 @@ class BrowserApplication : Application() {
         AdTrackerBlocklist(this)
     }
 
+    val filterEngines: FilterEngineManager by lazy {
+        FilterEngineManager(this, applicationScope)
+    }
+
     val cosmeticRuleStore: CosmeticRuleStore by lazy {
         CosmeticRuleStore(repository, applicationScope)
     }
@@ -52,8 +59,12 @@ class BrowserApplication : Application() {
 
     val lockPasswordStore: LockPasswordStore by lazy { LockPasswordStore(this) }
 
+    val gamblingBlocklist: GamblingBlocklist by lazy {
+        GamblingBlocklist { assets.open("blocklists/gambling_hosts.txt") }
+    }
+
     val siteBlocker: SiteBlocker by lazy {
-        SiteBlocker(repository, lockPasswordStore, applicationScope)
+        SiteBlocker(repository, lockPasswordStore, applicationScope, gamblingBlocklist)
     }
 
     val appLockController: AppLockController by lazy {
@@ -63,8 +74,15 @@ class BrowserApplication : Application() {
     override fun onCreate() {
         super.onCreate()
         siteBlocker
+        applicationScope.launch(Dispatchers.Default) { gamblingBlocklist.warmUp() }
         // Phase 21: purge expired per-site permission grants on cold start.
         applicationScope.launch { repository.purgeExpiredPermissionGrants() }
+        // Ad-block engines: load bundled/cached lists, then refresh from the network when stale.
+        filterEngines.loadAsync()
+        applicationScope.launch {
+            val last = settingsRepository.settings.first().blocklistLastUpdated
+            filterEngines.refreshIfStale(last)?.let { settingsRepository.setBlocklistLastUpdated(it) }
+        }
     }
 
     companion object {

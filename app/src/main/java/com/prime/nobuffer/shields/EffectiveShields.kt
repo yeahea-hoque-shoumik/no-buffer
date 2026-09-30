@@ -8,7 +8,7 @@ data class EffectiveShields(
     val fingerprintProtectionEnabled: Boolean
 ) {
     companion object {
-        fun allEnabled() = EffectiveShields(
+        fun allDisabled() = EffectiveShields(
             adBlockEnabled = false,
             trackerBlockEnabled = false,
             scriptsEnabled = true,

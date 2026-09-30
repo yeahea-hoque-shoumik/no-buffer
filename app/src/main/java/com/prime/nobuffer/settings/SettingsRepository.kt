@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
+import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
@@ -22,6 +23,9 @@ data class BrowserSettings(
     val downloadsLocation: String = "Downloads",
     val javaScriptEnabled: Boolean = true,
     val adBlockerEnabled: Boolean = true,
+    val trackerBlockerEnabled: Boolean = true,
+    /** Epoch millis of the last successful filter-list refresh; 0 = never (bundled lists in use). */
+    val blocklistLastUpdated: Long = 0L,
     val doNotTrackEnabled: Boolean = true,
     val blockThirdPartyCookies: Boolean = true,
     val safeBrowsingEnabled: Boolean = false,
@@ -52,6 +56,8 @@ class SettingsRepository(private val context: Context) {
         val DOWNLOADS_LOCATION = stringPreferencesKey("downloads_location")
         val JS_ENABLED = booleanPreferencesKey("js_enabled")
         val AD_BLOCKER = booleanPreferencesKey("ad_blocker")
+        val TRACKER_BLOCKER = booleanPreferencesKey("tracker_blocker")
+        val BLOCKLIST_LAST_UPDATED = longPreferencesKey("blocklist_last_updated")
         val DNT = booleanPreferencesKey("do_not_track")
         val BLOCK_THIRD_PARTY_COOKIES = booleanPreferencesKey("block_third_party_cookies")
         val SAFE_BROWSING = booleanPreferencesKey("safe_browsing")
@@ -80,6 +86,8 @@ class SettingsRepository(private val context: Context) {
             downloadsLocation = prefs[Keys.DOWNLOADS_LOCATION] ?: "Downloads",
             javaScriptEnabled = prefs[Keys.JS_ENABLED] ?: true,
             adBlockerEnabled = prefs[Keys.AD_BLOCKER] ?: true,
+            trackerBlockerEnabled = prefs[Keys.TRACKER_BLOCKER] ?: true,
+            blocklistLastUpdated = prefs[Keys.BLOCKLIST_LAST_UPDATED] ?: 0L,
             doNotTrackEnabled = prefs[Keys.DNT] ?: true,
             blockThirdPartyCookies = prefs[Keys.BLOCK_THIRD_PARTY_COOKIES] ?: true,
             safeBrowsingEnabled = prefs[Keys.SAFE_BROWSING] ?: false,
@@ -110,6 +118,8 @@ class SettingsRepository(private val context: Context) {
     suspend fun setDownloadsLocation(value: String) = context.dataStore.edit { it[Keys.DOWNLOADS_LOCATION] = value }
     suspend fun setJavaScriptEnabled(value: Boolean) = context.dataStore.edit { it[Keys.JS_ENABLED] = value }
     suspend fun setAdBlockerEnabled(value: Boolean) = context.dataStore.edit { it[Keys.AD_BLOCKER] = value }
+    suspend fun setTrackerBlockerEnabled(value: Boolean) = context.dataStore.edit { it[Keys.TRACKER_BLOCKER] = value }
+    suspend fun setBlocklistLastUpdated(value: Long) = context.dataStore.edit { it[Keys.BLOCKLIST_LAST_UPDATED] = value }
     suspend fun setDoNotTrackEnabled(value: Boolean) = context.dataStore.edit { it[Keys.DNT] = value }
     suspend fun setBlockThirdPartyCookies(value: Boolean) = context.dataStore.edit { it[Keys.BLOCK_THIRD_PARTY_COOKIES] = value }
     suspend fun setSafeBrowsingEnabled(value: Boolean) = context.dataStore.edit { it[Keys.SAFE_BROWSING] = value }

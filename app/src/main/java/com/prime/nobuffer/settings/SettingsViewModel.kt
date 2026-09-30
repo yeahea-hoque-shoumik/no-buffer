@@ -23,6 +23,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     fun setDownloadsLocation(value: String) = launch { repository.setDownloadsLocation(value) }
     fun setJavaScriptEnabled(value: Boolean) = launch { repository.setJavaScriptEnabled(value) }
     fun setAdBlockerEnabled(value: Boolean) = launch { repository.setAdBlockerEnabled(value) }
+    fun setTrackerBlockerEnabled(value: Boolean) = launch { repository.setTrackerBlockerEnabled(value) }
     fun setDoNotTrackEnabled(value: Boolean) = launch { repository.setDoNotTrackEnabled(value) }
     fun setBlockThirdPartyCookies(value: Boolean) = launch { repository.setBlockThirdPartyCookies(value) }
     fun setSafeBrowsingEnabled(value: Boolean) = launch { repository.setSafeBrowsingEnabled(value) }

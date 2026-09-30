@@ -80,6 +80,7 @@ fun BrowserWebViewComposable(
                 onReceivedError = { isRefreshing = false },
                 effectiveShields = shields.effectiveShields,
                 isHostBlocked = shields.isHostBlocked,
+                shouldBlockRequest = shields.shouldBlockRequest,
                 onRequestBlocked = onRequestBlocked,
                 cosmeticSelectors = shields.cosmeticSelectors,
                 httpsUpgradeEnabled = shields.httpsUpgradeEnabled,
@@ -94,6 +95,7 @@ fun BrowserWebViewComposable(
                 onSiteLocked = onSiteLocked,
                 isVideoAllowed = shields.isVideoAllowed
             )
+            setEarlyCosmeticProvider(shields.earlyCosmeticCss)
             webChromeClient = BrowserWebChromeClient(
                 onProgressChanged = onProgressChanged,
                 onReceivedTitle = onTitleChanged,

@@ -21,6 +21,14 @@ class BrowserWebView(context: Context) : WebView(context) {
     private var incognitoScriptHandler: ScriptHandler? = null
     private val fingerprintSeed = Random.nextInt(1, Int.MAX_VALUE)
     private var pickerBridgeAttached = false
+    private var cosmeticScriptHandler: ScriptHandler? = null
+    @Volatile private var earlyCosmeticProvider: ((String) -> String)? = null
+
+    private inner class CosmeticBridge {
+        // Called from the WebView's JavaBridge thread; the provider only reads volatile snapshots.
+        @JavascriptInterface
+        fun cssFor(host: String): String = earlyCosmeticProvider?.invoke(host.lowercase()).orEmpty()
+    }
 
     private var elementPickerCallback: ((String) -> Unit)? = null
 
@@ -83,6 +91,18 @@ class BrowserWebView(context: Context) : WebView(context) {
         }
     }
 
+    /**
+     * Ad-block cosmetic filtering at document start (no ad flash). The script asks [provider] for a
+     * host's CSS synchronously through a JS bridge, so it works on the very first navigation.
+     */
+    fun setEarlyCosmeticProvider(provider: (String) -> String) {
+        earlyCosmeticProvider = provider
+        if (cosmeticScriptHandler != null) return
+        if (!WebViewFeature.isFeatureSupported(WebViewFeature.DOCUMENT_START_SCRIPT)) return
+        addJavascriptInterface(CosmeticBridge(), COSMETIC_BRIDGE)
+        cosmeticScriptHandler = WebViewCompat.addDocumentStartJavaScript(this, EARLY_COSMETIC_JS, setOf("*"))
+    }
+
     fun enableIncognitoIsolation() {
         settings.cacheMode = WebSettings.LOAD_NO_CACHE
         importantForAutofill = View.IMPORTANT_FOR_AUTOFILL_NO
@@ -122,6 +142,29 @@ class BrowserWebView(context: Context) : WebView(context) {
     }
 
     companion object {
+        private const val COSMETIC_BRIDGE = "NoBufferCosmetics"
+        private const val EARLY_COSMETIC_JS = """
+            (function() {
+                try {
+                    if (window.top !== window || !window.$COSMETIC_BRIDGE) return;
+                    var css = window.$COSMETIC_BRIDGE.cssFor(location.hostname);
+                    if (!css) return;
+                    var s = document.createElement('style');
+                    s.textContent = css;
+                    var add = function() {
+                        var p = document.head || document.documentElement;
+                        if (!p) return false;
+                        p.appendChild(s);
+                        return true;
+                    };
+                    if (!add()) {
+                        var o = new MutationObserver(function() { if (add()) o.disconnect(); });
+                        o.observe(document, { childList: true, subtree: true });
+                    }
+                } catch (e) {}
+            })();
+        """
+
         const val CHROME_UA =
             "Mozilla/5.0 (Linux; Android 14; Pixel 8) " +
             "AppleWebKit/537.36 (KHTML, like Gecko) " +

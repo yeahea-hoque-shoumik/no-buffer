@@ -67,6 +67,7 @@ import com.prime.nobuffer.navigation.Screen
 import com.prime.nobuffer.newtab.QuickAccessViewModel
 import com.prime.nobuffer.settings.DarkModeOption
 import com.prime.nobuffer.settings.SettingsViewModel
+import com.prime.nobuffer.shields.CosmeticSelectors
 import com.prime.nobuffer.shields.NavigationHeaders
 import com.prime.nobuffer.shields.WebShieldsContext
 import com.prime.nobuffer.tabs.BrowserTab
@@ -429,6 +430,24 @@ fun BrowserNavHost(
         WebShieldsContext(
             effectiveShields = { host -> app.shieldsResolver.effectiveShields(host) },
             isHostBlocked = { host -> app.adTrackerBlocklist.isBlocked(host) || app.cosmeticRuleStore.isDomainBlocked(host) },
+            shouldBlockRequest = { request, firstPartyHost, ads, trackers ->
+                app.filterEngines.shouldBlock(
+                    url = request.url.toString(),
+                    headers = request.requestHeaders.orEmpty(),
+                    isMainFrame = request.isForMainFrame,
+                    firstPartyHost = firstPartyHost,
+                    adsEnabled = ads,
+                    trackersEnabled = trackers
+                )
+            },
+            earlyCosmeticCss = { host ->
+                if (app.shieldsResolver.effectiveShields(host).adBlockEnabled) {
+                    app.filterEngines.cosmeticCss(
+                        host,
+                        CosmeticSelectors.GLOBAL + CosmeticSelectors.COOKIE_BANNERS + app.cosmeticRuleStore.selectorsFor(host)
+                    )
+                } else ""
+            },
             cosmeticSelectors = { host -> app.cosmeticRuleStore.selectorsFor(host) },
             navigationHeaders = {
                 NavigationHeaders.build(

@@ -43,7 +43,11 @@ class ShieldsResolver(
                 ShieldsMode.AGGRESSIVE -> true
                 ShieldsMode.STANDARD -> settings.adBlockerEnabled
             },
-            trackerBlockEnabled = override?.trackerBlock ?: (settings.shieldsMode != ShieldsMode.DISABLED),
+            trackerBlockEnabled = override?.trackerBlock ?: when (settings.shieldsMode) {
+                ShieldsMode.DISABLED -> false
+                ShieldsMode.AGGRESSIVE -> true
+                ShieldsMode.STANDARD -> settings.trackerBlockerEnabled
+            },
             scriptsEnabled = override?.scriptsEnabled ?: settings.javaScriptEnabled,
             fingerprintProtectionEnabled = override?.fingerprintProtection ?: when (settings.shieldsMode) {
                 ShieldsMode.DISABLED -> false

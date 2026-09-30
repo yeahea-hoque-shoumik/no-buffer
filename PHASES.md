@@ -435,3 +435,11 @@ Follow this sequence to keep each phase runnable end-to-end:
 19. ✅ Phase 19 — Navigation & URL Hardening
 20. ✅ Phase 20 — Shields UI (Per-Site Controls + Global Defaults)
 21. ✅ Phase 21 — Time-Limited Permission Grants
+
+## Phase 17b — Filter-List Ad Blocker Upgrade ✅
+
+- `shields/engine/` — ABP/uBO-syntax engine (`FilterParser`, `FilterEngine`, `NetworkRule`, `CosmeticIndex`): `||`/`|`/`*`/`^` patterns, `$third-party`, resource types, `$domain=`, `$important`, `@@` exceptions, `##` / `#@#` cosmetic rules. Unsupported options (regex, `$csp`, `$redirect`, scriptlets, `:has-text`) are skipped, never approximated.
+- Two engines via `FilterEngineManager`: EasyList (ads) and EasyPrivacy (trackers), gated by `EffectiveShields.adBlockEnabled` / `trackerBlockEnabled`. Bundled in `assets/blocklists/`, refreshed weekly on cold start into `filesDir/blocklists/`.
+- Early cosmetic hiding: document-start script pulls per-host CSS through the `NoBufferCosmetics` JS bridge (`BrowserWebView.setEarlyCosmeticProvider`); `onPageFinished` injection kept as fallback.
+- New Settings toggle: Tracker Blocker. `EffectiveShields.allEnabled()` renamed `allDisabled()` (it always returned all-off).
+- Attribution: EasyList / EasyPrivacy © the EasyList authors, dual-licensed GPLv3 / CC BY-SA 3.0 (https://easylist.to).

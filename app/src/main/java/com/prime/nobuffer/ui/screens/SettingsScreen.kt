@@ -167,6 +167,7 @@ fun SettingsScreen(
                     value = settings.shieldsMode.name.lowercase().replaceFirstChar { it.uppercase() }
                 ) { showShieldsModeDialog = true }
                 ToggleRow(icon = "🚷", label = "Ad Blocker", checked = settings.adBlockerEnabled) { viewModel.setAdBlockerEnabled(it) }
+                ToggleRow(icon = "📡", label = "Tracker Blocker", checked = settings.trackerBlockerEnabled) { viewModel.setTrackerBlockerEnabled(it) }
                 ToggleRow(icon = "🚫", label = "Do Not Track", checked = settings.doNotTrackEnabled) { viewModel.setDoNotTrackEnabled(it) }
                 ToggleRow(icon = "🍪", label = "Block 3rd-party Cookies", checked = settings.blockThirdPartyCookies) { viewModel.setBlockThirdPartyCookies(it) }
                 ToggleRow(icon = "🕵️", label = "Anti-Fingerprinting", checked = settings.antiFingerprintingEnabled) { viewModel.setAntiFingerprintingEnabled(it) }

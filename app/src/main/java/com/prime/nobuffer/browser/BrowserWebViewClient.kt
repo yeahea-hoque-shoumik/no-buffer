@@ -19,8 +19,9 @@ class BrowserWebViewClient(
     private val onSslError: (handler: SslErrorHandler, error: SslError) -> Unit = { handler, _ -> handler.cancel() },
     private val onReceivedError: () -> Unit = {},
     // Phase 17 — content blocking
-    private val effectiveShields: (host: String?) -> EffectiveShields = { EffectiveShields.allEnabled() },
+    private val effectiveShields: (host: String?) -> EffectiveShields = { EffectiveShields.allDisabled() },
     private val isHostBlocked: (String?) -> Boolean = { false },
+    private val shouldBlockRequest: (WebResourceRequest, String?, Boolean, Boolean) -> Boolean = { _, _, _, _ -> false },
     private val onRequestBlocked: () -> Unit = {},
     private val cosmeticSelectors: (host: String?) -> List<String> = { emptyList() },
     // Phase 19 — navigation hardening
@@ -66,7 +67,11 @@ class BrowserWebViewClient(
         }
         if (!request.isForMainFrame) {
             val shields = effectiveShields(currentMainFrameHost)
-            if ((shields.adBlockEnabled || shields.trackerBlockEnabled) && isHostBlocked(request.url.host)) {
+            val blocked = (shields.adBlockEnabled || shields.trackerBlockEnabled) && (
+                isHostBlocked(request.url.host) ||
+                    shouldBlockRequest(request, currentMainFrameHost, shields.adBlockEnabled, shields.trackerBlockEnabled)
+                )
+            if (blocked) {
                 onRequestBlocked()
                 return WebResourceResponse("text/plain", "UTF-8", null)
             }
