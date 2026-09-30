@@ -54,7 +54,8 @@ fun BrowserWebViewComposable(
     onGeolocationPermissionRequested: (String, GeolocationPermissions.Callback) -> Unit = { _, callback -> callback.invoke(null, false, false) },
     isSiteLocked: (String) -> Boolean = { false },
     onSiteLocked: (String) -> Unit = {},
-    isIncognito: Boolean = false
+    isIncognito: Boolean = false,
+    onOpenInNewTab: (String) -> Unit = {}
 ) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -102,6 +103,24 @@ fun BrowserWebViewComposable(
                 onGeolocationPermissionRequested = onGeolocationPermissionRequested,
                 isVideoAllowed = shields.isVideoAllowed
             )
+            setOnLongClickListener { view ->
+                val wv = view as WebView
+                val result = wv.hitTestResult
+                when (result.type) {
+                    WebView.HitTestResult.SRC_ANCHOR_TYPE ->
+                        result.extra?.let { showLinkMenu(context, it, onOpenInNewTab) } != null
+                    WebView.HitTestResult.SRC_IMAGE_ANCHOR_TYPE -> {
+                        val handler = android.os.Handler(android.os.Looper.getMainLooper()) { msg ->
+                            msg.data?.getString("url")?.takeIf { it.isNotBlank() }
+                                ?.let { showLinkMenu(context, it, onOpenInNewTab) }
+                            true
+                        }
+                        wv.requestFocusNodeHref(handler.obtainMessage())
+                        true
+                    }
+                    else -> false
+                }
+            }
             setDownloadListener { downloadUrl, userAgent, contentDisposition, mimeType, _ ->
                 when {
                     isIncognito ->
@@ -162,6 +181,22 @@ fun BrowserWebViewComposable(
             }
         )
     }
+}
+
+private fun showLinkMenu(context: Context, url: String, onOpenInNewTab: (String) -> Unit) {
+    AlertDialog.Builder(context)
+        .setTitle(url)
+        .setItems(arrayOf("Open in new tab", "Copy link")) { _, which ->
+            when (which) {
+                0 -> onOpenInNewTab(url)
+                1 -> {
+                    val cm = context.getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+                    cm.setPrimaryClip(android.content.ClipData.newPlainText("link", url))
+                    Toast.makeText(context, "Link copied", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+        .show()
 }
 
 private fun downloadFile(context: Context, url: String, userAgent: String, contentDisposition: String, mimeType: String?) {

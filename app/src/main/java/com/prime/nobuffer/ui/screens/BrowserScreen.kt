@@ -67,6 +67,7 @@ fun BrowserScreen(
     onShowFileChooser: (ValueCallback<Array<Uri>>, WebChromeClient.FileChooserParams) -> Boolean = { _, _ -> false },
     onPermissionRequested: (PermissionRequest) -> Unit = { it.deny() },
     onGeolocationPermissionRequested: (String, GeolocationPermissions.Callback) -> Unit = { _, callback -> callback.invoke(null, false, false) },
+    onOpenInNewTab: (String) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val colors = Orion.colors
@@ -177,6 +178,7 @@ fun BrowserScreen(
                 modifier = Modifier.fillMaxSize(),
                 existingWebView = webView,
                 isIncognito = isIncognito,
+                onOpenInNewTab = onOpenInNewTab,
                 shields = shields,
                 onRequestBlocked = onRequestBlocked,
                 onWebViewReady = { webViewRef = it; onWebViewReady(it) },

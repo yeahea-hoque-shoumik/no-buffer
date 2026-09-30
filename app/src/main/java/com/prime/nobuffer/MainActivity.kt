@@ -784,7 +784,8 @@ fun BrowserNavHost(
                             onCancelElementPicker = { elementPickerActive = false },
                             onShowFileChooser = onShowFileChooser,
                             onPermissionRequested = onPermissionRequested,
-                            onGeolocationPermissionRequested = onGeolocationPermissionRequested
+                            onGeolocationPermissionRequested = onGeolocationPermissionRequested,
+                            onOpenInNewTab = { url -> tabsViewModel.newTab(url, isIncognito = tab.isIncognito) }
                         )
                     }
 
